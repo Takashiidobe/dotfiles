@@ -1,0 +1,35 @@
+refresh
+update-cache
+refresh 
+cache
+pl-create study-songs
+update-cache 
+pavement
+clear
+update-cache -f
+udpate-cache
+help
+Q
+q
+mute
+stop
+add .
+update
+add ~/Music
+live-filter 
+pl-delete
+pl-export
+pl-add
+add -p jpop
+pl-create jpop
+qa!
+set output_plugin=alsa
+set output_plugin=vorbis
+set color_statusline_attr
+set output_plugin=oss
+set output_plugin=pulse
+set aaa_mode:q
+set output_plugin="mp3"
+set output_plugin=mad
+set output_plugin=os
+set output_plugin-os

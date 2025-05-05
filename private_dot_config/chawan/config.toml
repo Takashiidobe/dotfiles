@@ -1,0 +1,3 @@
+[page]
+'n' = 'cmd.pager.nextBuffer'
+'b' = 'cmd.pager.prevBuffer'

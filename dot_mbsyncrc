@@ -1,0 +1,18 @@
+IMAPStore gmail-remote
+Host imap.gmail.com
+AuthMechs LOGIN
+User idobetakashi@gmail.com
+PassCmd "pass show gmail"
+TLSType IMAPS
+
+MaildirStore gmail-local
+Path ~/mail/gmail/
+Inbox ~/mail/gmail/INBOX
+Subfolders Verbatim
+
+Channel gmail
+Far :gmail-remote:
+Near :gmail-local:
+Expunge Both
+Patterns * !"[Gmail]/All Mail" !"[Gmail]/Important" !"[Gmail]/Starred" !"[Gmail]/Bin"
+SyncState *
