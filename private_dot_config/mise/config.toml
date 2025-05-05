@@ -1,0 +1,12 @@
+[tools]
+gleam = "latest"
+ruby = "latest"
+haskell = "latest"
+R = "latest"
+erlang = "latest"
+go = "latest"
+java = "latest"
+elixir = "latest"
+scala = "latest"
+opam = "latest"
+chezmoi = "latest"
