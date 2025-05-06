@@ -1,0 +1,51 @@
+Host *
+  AddKeysToAgent yes
+  IdentityFile ~/.ssh/id_ed25519
+  ServerAliveInterval 60
+  PubkeyAcceptedAlgorithms +ssh-rsa
+  HostkeyAlgorithms +ssh-rsa
+Host hetzner
+  HostName 49.13.170.92
+  User lclmzh69
+  IdentityFile ~/.ssh/lclmzh69.pem
+Host remarkable
+  HostName 10.0.0.127
+  User root
+  Port 22
+  IdentityFile ~/.ssh/id_rsa
+Host remarkable-usb
+  HostName 10.11.99.1
+  User root
+  Port 22
+  IdentityFile ~/.ssh/id_rsa
+Host g3
+  HostName 10.0.0.232
+  User takashi
+  Port 22
+  IdentityFile ~/.ssh/id_ed25519
+Host pixel
+  HostName 10.0.0.134
+	# User root
+  Port 2222
+	# IdentityFile ~/.ssh/id_ed25519
+Host s10
+  HostName 10.0.0.88
+  User root
+  Port 2222
+  IdentityFile ~/.ssh/id_ed25519
+Host jumpbox
+	Hostname 10.0.0.135
+	User root
+	port 22
+Host server
+	Hostname 10.0.0.32
+	User root
+	port 22
+Host node-0
+	Hostname 10.0.0.128
+	User root
+	port 22
+Host node-1
+	Hostname 10.0.0.89
+	User root
+	port 22
