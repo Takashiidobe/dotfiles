@@ -1,0 +1,44 @@
+# general settings
+auto-reload no
+max-items 10000
+# show-read-articles no
+# run-on-startup set-filter "unread_count > 0"
+
+# external browser
+browser "xdg-open %u"
+macro m set browser "/usr/local/bin/mpv %u"; open-in-browser ; set browser "/usr/local/bin/w3m %u"
+macro l set browser "/usr/local/bin/firefox %u"; open-in-browser ; set browser "/usr/local/bin/w3m %u"
+
+# Download full page
+download-full-page yes
+
+# unbind keys
+unbind-key ENTER
+unbind-key j
+unbind-key k
+unbind-key J
+unbind-key K
+
+# Fix g and GG
+unbind-key g # bound to `sort` by default
+bind-key g home
+unbind-key G # bound to `rev-sort` by default
+bind-key G end
+
+# bind keys - vim style
+bind-key j down
+bind-key k up
+bind-key l open
+bind-key h quit
+
+# highlights
+highlight article "^(Title):.*$" blue default
+highlight article "https?://[^ ]+" red default
+highlight article "\\[image\\ [0-9]+\\]" green default
+
+urls-source "miniflux"
+miniflux-url "https://miniflux.takashiidobe.com/"
+miniflux-login "admin"
+miniflux-password "test123"
+miniflux-min-items 500
+miniflux-show-special-feeds "false"
