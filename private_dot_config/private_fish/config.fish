@@ -1,5 +1,6 @@
 set -x BUN_INSTALL "$HOME/.bun"
 set -x GOPATH "$HOME/go"
+set -gx FLYCTL_INSTALL "$HOME/.fly"
 fish_add_path "$BUN_INSTALL/bin"
 fish_add_path "$GOPATH/bin"
 fish_add_path "$HOME/.cargo/bin"
@@ -11,10 +12,8 @@ fish_add_path "$HOME/.yarn/bin"
 fish_add_path "$HOME/.wasmtime/bin"
 fish_add_path "$HOME/.local/share/nvim/mason/bin"
 fish_add_path "$HOME/.nimble/bin"
-fish_add_path "$HOME/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin"
+# fish_add_path "$HOME/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin"
 fish_add_path "$HOME/.luarocks/bin"
-
-set -gx FLYCTL_INSTALL "$HOME/.fly"
 fish_add_path "$FLYCTL_INSTALL/bin"
 
 alias lynx "lynx -vikeys"
@@ -31,16 +30,17 @@ alias cha "cha -T text/html -I utf8"
 alias man mancha
 
 set -x GPG_TTY (tty)
-set -gx EDITOR "/bin/nvim"
-set -gx VISUAL "/bin/nvim"
+set -gx EDITOR nvim
+set -gx VISUAL nvim
 set -gx PAGER bat
-set -gx MANPAGER 'nvim +Man!'
+set -gx MANPAGER bat
 set -gx MONOREPO $HOME/monorepo
 set -gx MOZ_ENABLE_WAYLAND 1
 set -gx MOZ_DISABLE_RDD_SANDBOX 1
 set -gx CARGO_INCREMENTAL 1
 set -gx BROWSER firefox
 set -gx WASMTIME_HOME "$HOME/.wasmtime"
+set -gx MISE_PIN 1
 
 alias ls "ls -a --color=auto"
 alias grep "grep --color=auto"
@@ -68,7 +68,6 @@ set -gx GEMINI_API_KEY (pass gemini-api-key)
 
 source /home/takashi/.config/fish/kraft_completion.fish;
 
-# opam configuration
-# source /home/takashi/.opam/opam-init/init.fish > /dev/null 2> /dev/null; or true
 ~/.local/bin/mise activate fish | source
 
+test -r '/home/takashi/.opam/opam-init/init.fish' && source '/home/takashi/.opam/opam-init/init.fish' > /dev/null 2> /dev/null; or true
