@@ -156,6 +156,7 @@ vim.keymap.set('n', '<leader>m', 'ct_')
 -- F1 is pretty close to Esc, so you probably meant Esc
 vim.keymap.set('', '<F1>', '<Esc>')
 vim.keymap.set('i', '<F1>', '<Esc>')
+vim.keymap.set('n', 'gb', '<C-t>')
 
 -------------------------------------------------------------------------------
 --
