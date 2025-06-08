@@ -563,11 +563,9 @@ require("lazy").setup({
 
 				local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-				-- When https://neovim.io/doc/user/lsp.html#lsp-inlay_hint stabilizes
-				-- *and* there's some way to make it only apply to the current line.
-				-- if client.server_capabilities.inlayHintProvider then
-				--     vim.lsp.inlay_hint(ev.buf, true)
-				-- end
+				if client.server_capabilities.inlayHintProvider then
+					vim.lsp.inlay_hint.enable(true, {0})
+				end
 
 				-- None of this semantics tokens business.
 				-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
@@ -728,6 +726,14 @@ require("lazy").setup({
 		local liblldb_path = MASON_PATH .. "packages/codelldb/extension/lldb/lib/liblldb.so"
 
 		local opts = {
+			tools = {
+				inlay_hints = {
+					auto = true,
+					only_current_line = true,
+					show_parameter_hints = true,
+					highlight = "Comment",
+				}
+			},
 			server = {
 				settings = {
 					["rust-analyzer"] = {
