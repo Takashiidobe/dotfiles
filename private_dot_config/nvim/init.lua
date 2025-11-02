@@ -73,6 +73,7 @@ vim.api.nvim_create_autocmd('Filetype', { pattern = 'rust', command = 'set color
 -- show more hidden characters
 -- also, show tabs nicer
 vim.opt.listchars = 'tab:^ ,nbsp:¬,extends:»,precedes:«,trail:•'
+vim.opt.clipboard="unnamedplus"
 
 -------------------------------------------------------------------------------
 --
@@ -83,6 +84,8 @@ vim.opt.listchars = 'tab:^ ,nbsp:¬,extends:»,precedes:«,trail:•'
 vim.keymap.set('n', '<leader>w', '<cmd>w<cr>')
 -- make missing : less annoying
 vim.keymap.set('n', ';', ':')
+-- go back to previous buffer
+vim.keymap.set('n', 'gb', '<C-O>')
 -- Ctrl+j and Ctrl+k as Esc
 vim.keymap.set('n', '<C-j>', '<Esc>')
 vim.keymap.set('i', '<C-j>', '<Esc>')
@@ -500,6 +503,7 @@ require("lazy").setup({
 					-- Buffer local mappings.
 					-- See `:help vim.lsp.*` for documentation on any of the below functions
 					local opts = { buffer = ev.buf }
+					vim.keymap.set({ 'n', 'v' }, 'ga', vim.lsp.buf.code_action, opts)
 					vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
 					vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
 					vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
@@ -522,7 +526,7 @@ require("lazy").setup({
 
 					-- TODO: find some way to make this only apply to the current line.
 					if client.server_capabilities.inlayHintProvider then
-					    vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+					    vim.lsp.inlay_hint.enable(true, { 0 })
 					end
 
 					-- None of this semantics tokens business.
