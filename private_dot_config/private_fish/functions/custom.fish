@@ -1,5 +1,5 @@
 set ssh_port 2000
-set pixel_ip 10.0.0.133 # 21.248.155.173 # 48.178.154.175 #
+set pixel_ip 192.168.1.226 # 21.248.155.173 # 48.178.154.175 #
 set s10_ip 10.0.0.88
 set remarkable_ip 10.0.0.127
 set ssh_ip "$pixel_ip" #192.168.2.76 # 10.0.0.17
@@ -9,7 +9,17 @@ function sync_books
 end
 
 function sync_music
-  rsync -rvze "ssh -p $ssh_port" --update --progress "$HOME/Music/" "$ssh_ip:/sdcard/Music" --include-from="$HOME/.musicignore"
+  rsync -r \
+    --size-only \
+    --modify-window=2 \
+    --omit-dir-times \
+    --no-perms --no-owner --no-group \
+    --include-from="$HOME/.musicignore" --exclude='*' \
+    --filter='protect .thumbnails/' \
+    --delete-after \
+    --info=stats2,progress2 \
+    -e 'ssh -T -p '"$ssh_port"' -o Compression=no' \
+    "$HOME/Music/" "$ssh_ip:/sdcard/Music/"
 end
 
 function sync_papers
@@ -21,7 +31,15 @@ function sync_links
 end
 
 function sync_photos
-  rsync -rvze "ssh -p $ssh_port" --update --include-from="$HOME/.photoignore" --progress "$ssh_ip:/sdcard/DCIM/Camera/" "$HOME/Pictures/s10/"
+    rsync -rW \
+        --size-only \
+        --modify-window=2 \
+        --omit-dir-times \
+        --no-perms --no-owner --no-group \
+        --include-from="$HOME/.photoignore" --exclude='*' \
+        --info=stats2,progress2 \
+        -e 'ssh -T -p '"$ssh_port"' -o Compression=no' \
+        "$ssh_ip:/sdcard/DCIM/Camera/" "$HOME/Pictures/s10/"
 end
 
 function dl-mp3 -a URL
@@ -58,27 +76,3 @@ end
 function exercise
     $HOME/.local/bin/exercise $HOME/exercise/exercises.txt
 end
-
-  function __direnv_export_eval --on-event fish_prompt;
-        "/usr/bin/direnv" export fish | source;
-
-        if test "$direnv_fish_mode" != "disable_arrow";
-            function __direnv_cd_hook --on-variable PWD;
-                if test "$direnv_fish_mode" = "eval_after_arrow";
-                    set -g __direnv_export_again 0;
-                else;
-                    "/usr/bin/direnv" export fish | source;
-                end;
-            end;
-        end;
-    end;
-
-    function __direnv_export_eval_2 --on-event fish_preexec;
-        if set -q __direnv_export_again;
-            set -e __direnv_export_again;
-            "/usr/bin/direnv" export fish | source;
-            echo;
-        end;
-
-        functions --erase __direnv_cd_hook;
-    end;

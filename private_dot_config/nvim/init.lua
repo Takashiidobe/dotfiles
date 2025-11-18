@@ -47,9 +47,9 @@ vim.opt.wildmode = 'list:longest'
 -- don't suggest files like there:
 vim.opt.wildignore = '.hg,.svn,*~,*.png,*.jpg,*.gif,*.min.js,*.swp,*.o,vendor,dist,_site'
 -- tabs: go big or go home
-vim.opt.shiftwidth = 8
-vim.opt.softtabstop = 8
-vim.opt.tabstop = 8
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
+vim.opt.tabstop = 2
 vim.opt.expandtab = false
 -- case-insensitive search/replace
 vim.opt.ignorecase = true
@@ -315,6 +315,14 @@ require("lazy").setup({
 			)
 		end
 	},
+	-- Git fugitive
+	{
+		'tpope/vim-fugitive'
+	},
+	-- support for github
+	{
+		'tpope/vim-rhubarb'
+	},
 	-- quick navigation
 	{
 		'ggandor/leap.nvim',
@@ -444,6 +452,7 @@ require("lazy").setup({
 			-- Rust
 			vim.lsp.config('rust_analyzer', {
 				-- Server-specific settings. See `:help lspconfig-setup`
+				filetypes = { "rust" },
 				settings = {
 					["rust-analyzer"] = {
 						cargo = {
@@ -470,10 +479,19 @@ require("lazy").setup({
 			})
 			vim.lsp.enable('rust_analyzer')
 
+			vim.lsp.config('clangd', { filetypes = { "c", "cpp", "objc", "objcpp" } })
+			vim.lsp.enable('clangd')
+
 			-- Bash LSP
 			if vim.fn.executable('bash-language-server') == 1 then
 				vim.lsp.enable('bashls')
 			end
+
+			-- m68k asm lsp
+			-- if vim.fn.executable('m68k-lsp-server') == 1 then
+			-- 	vim.lsp.config('m68k', { filetypes = { "asm", "s", "S" } })
+			-- 	vim.lsp.enable('m68k')
+			-- end
 
 			-- texlab for LaTeX
 			if vim.fn.executable('texlab') == 1 then

@@ -12,6 +12,8 @@ fish_add_path "$HOME/.yarn/bin"
 fish_add_path "$HOME/.wasmtime/bin"
 fish_add_path "$HOME/.local/share/nvim/mason/bin"
 fish_add_path "$HOME/.nimble/bin"
+fish_add_path "$HOME/x-tools/m68k-unknown-linux-gnu/bin/"
+fish_add_path "$HOME/x-tools/x86_64-unknown-linux-musl/bin/"
 # fish_add_path "$HOME/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin"
 fish_add_path "$HOME/.luarocks/bin"
 fish_add_path "$FLYCTL_INSTALL/bin"
@@ -63,8 +65,7 @@ set FZF_DEFAULT_COMMAND 'rg --files --hidden --follow --no-ignore-vcs'
 source ~/.config/fish/functions/custom.fish
 
 set -g -x fish_greeting ''
-set -gx OPENAI_API_KEY (pass openai-api-key)
-set -gx GEMINI_API_KEY (pass gemini-api-key)
+# set -gx OPENAI_API_KEY (pass openai-api-key) set -gx GEMINI_API_KEY (pass gemini-api-key)
 
 source /home/takashi/.config/fish/kraft_completion.fish;
 
