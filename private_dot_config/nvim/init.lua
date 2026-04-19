@@ -737,4 +737,117 @@ require("lazy").setup({
 			vim.g.vim_markdown_auto_insert_bullets = 0
 		end
 	},
+	-- treesitter
+	{
+		'nvim-treesitter/nvim-treesitter',
+		build = ':TSUpdate',
+		config = function()
+			vim.opt.rtp:prepend(vim.fn.stdpath('data') .. '/lazy/nvim-treesitter')
+			require('nvim-treesitter.configs').setup({
+				ensure_installed = { 'rust', 'lua', 'toml' },
+				highlight = { enable = false },
+				auto_install = true,
+			})
+		end,
+	},
+	-- testing
+	{
+		'nvim-neotest/neotest',
+		dependencies = {
+			'nvim-neotest/nvim-nio',
+			'nvim-lua/plenary.nvim',
+			'antoinemadec/FixCursorHold.nvim',
+			'nvim-treesitter/nvim-treesitter',
+			'rouge8/neotest-rust',
+		},
+		config = function()
+			require('neotest').setup({
+				adapters = {
+					require('neotest-rust'),
+				},
+			})
+			vim.keymap.set('n', '<leader>tr', function() require('neotest').run.run() end)
+			vim.keymap.set('n', '<leader>td', function() require('neotest').run.run({ strategy = 'dap' }) end)
+			vim.keymap.set('n', '<leader>tf', function() require('neotest').run.run(vim.fn.expand('%')) end)
+			vim.keymap.set('n', '<leader>ta', function() require('neotest').run.run(vim.fn.getcwd()) end)
+			vim.keymap.set('n', '<leader>ts', function() require('neotest').summary.toggle() end)
+			vim.keymap.set('n', '<leader>to', function() require('neotest').output.open() end)
+			vim.keymap.set('n', '<leader>tp', function() require('neotest').output_panel.toggle() end)
+			vim.keymap.set('n', ']t', function() require('neotest').jump.next({ status = 'failed' }) end)
+			vim.keymap.set('n', '[t', function() require('neotest').jump.prev({ status = 'failed' }) end)
+		end,
+	},
+	-- debugging
+	{
+		'mfussenegger/nvim-dap',
+		config = function()
+			local dap = require('dap')
+
+			dap.adapters.codelldb = {
+				type = 'server',
+				port = '${port}',
+				executable = {
+					command = '/usr/bin/codelldb',
+					args = { '--port', '${port}' },
+				},
+			}
+
+			dap.configurations.rust = {
+				{
+					name = 'Debug',
+					type = 'codelldb',
+					request = 'launch',
+					program = function()
+						vim.fn.system('cargo build 2>/dev/null')
+						return vim.fn.getcwd() .. '/target/debug/' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
+					end,
+					cwd = '${workspaceFolder}',
+					stopOnEntry = false,
+				},
+				{
+					name = 'Debug test',
+					type = 'codelldb',
+					request = 'launch',
+					program = function()
+						local output = vim.fn.system('cargo test --no-run --message-format=json 2>&1')
+						for line in output:gmatch('[^\n]+') do
+							local ok, data = pcall(vim.fn.json_decode, line)
+							if ok and data and data.executable
+								and data.profile and data.profile.test
+								and data.target and data.target.kind
+								and vim.tbl_contains(data.target.kind, 'lib') then
+								return data.executable
+							end
+						end
+						error('Could not find test binary')
+					end,
+					args = function()
+						local test_name = vim.fn.input('Test filter: ')
+						return { test_name, '--nocapture', '--test-threads=1' }
+					end,
+					cwd = '${workspaceFolder}',
+					stopOnEntry = false,
+				},
+			}
+
+			vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint)
+			vim.keymap.set('n', '<leader>dc', dap.continue)
+			vim.keymap.set('n', '<leader>dn', dap.step_over)
+			vim.keymap.set('n', '<leader>di', dap.step_into)
+			vim.keymap.set('n', '<leader>do', dap.step_out)
+			vim.keymap.set('n', '<leader>dq', dap.terminate)
+		end,
+	},
+	{
+		'rcarriga/nvim-dap-ui',
+		dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
+		config = function()
+			local dap, dapui = require('dap'), require('dapui')
+			dapui.setup()
+			dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end
+			dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end
+			dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end
+			vim.keymap.set('n', '<leader>du', dapui.toggle)
+		end,
+	},
 })
