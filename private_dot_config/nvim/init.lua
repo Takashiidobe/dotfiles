@@ -73,7 +73,7 @@ vim.api.nvim_create_autocmd('Filetype', { pattern = 'rust', command = 'set color
 -- show more hidden characters
 -- also, show tabs nicer
 vim.opt.listchars = 'tab:^ ,nbsp:¬,extends:»,precedes:«,trail:•'
-vim.opt.clipboard="unnamedplus"
+vim.opt.clipboard = "unnamedplus"
 
 -------------------------------------------------------------------------------
 --
@@ -86,6 +86,8 @@ vim.keymap.set('n', '<leader>w', '<cmd>w<cr>')
 vim.keymap.set('n', ';', ':')
 -- go back to previous buffer
 vim.keymap.set('n', 'gb', '<C-O>')
+-- go forward to next buffer
+vim.keymap.set('n', 'gn', '<C-I>')
 -- Ctrl+j and Ctrl+k as Esc
 vim.keymap.set('n', '<C-j>', '<Esc>')
 vim.keymap.set('i', '<C-j>', '<Esc>')
@@ -208,13 +210,13 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
 -- also, produce "flowed text" wrapping
 -- https://brianbuccola.com/line-breaks-in-mutt-and-vim/
 vim.api.nvim_create_autocmd('Filetype', {
-  pattern = 'mail',
-  group = email,
-  command = 'setlocal formatoptions+=w',
+	pattern = 'mail',
+	group = email,
+	command = 'setlocal formatoptions+=w',
 })
 -- shorter columns in text because it reads better that way
 local text = vim.api.nvim_create_augroup('text', { clear = true })
-for _, pat in ipairs({'text', 'markdown', 'mail', 'gitcommit'}) do
+for _, pat in ipairs({ 'text', 'markdown', 'mail', 'gitcommit' }) do
 	vim.api.nvim_create_autocmd('Filetype', {
 		pattern = pat,
 		group = text,
@@ -253,7 +255,7 @@ require("lazy").setup({
 	-- main color scheme
 	{
 		"wincent/base16-nvim",
-		lazy = false, -- load at start
+		lazy = false,  -- load at start
 		priority = 1000, -- load first
 		config = function()
 			vim.cmd([[colorscheme gruvbox-dark-hard]])
@@ -266,7 +268,8 @@ require("lazy").setup({
 			vim.api.nvim_set_hl(0, 'Comment', bools)
 			-- Make it clearly visible which argument we're at.
 			local marked = vim.api.nvim_get_hl(0, { name = 'PMenu' })
-			vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', { fg = marked.fg, bg = marked.bg, ctermfg = marked.ctermfg, ctermbg = marked.ctermbg, bold = true })
+			vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter',
+				{ fg = marked.fg, bg = marked.bg, ctermfg = marked.ctermfg, ctermbg = marked.ctermbg, bold = true })
 			-- XXX
 			-- Would be nice to customize the highlighting of warnings and the like to make
 			-- them less glaring. But alas
@@ -284,7 +287,7 @@ require("lazy").setup({
 			vim.g.lightline = {
 				active = {
 					left = {
-						{ 'mode', 'paste' },
+						{ 'mode',     'paste' },
 						{ 'readonly', 'filename', 'modified' }
 					},
 					right = {
@@ -304,6 +307,7 @@ require("lazy").setup({
 					return vim.fn.getreg('%')
 				end
 			end
+
 			-- https://github.com/itchyny/lightline.vim/issues/657
 			vim.api.nvim_exec(
 				[[
@@ -325,10 +329,10 @@ require("lazy").setup({
 	},
 	-- quick navigation
 	{
-		'ggandor/leap.nvim',
+		url = "https://codeberg.org/andyg/leap.nvim",
 		config = function()
-			vim.keymap.set({'n', 'x', 'o'}, 's', '<Plug>(leap)')
-			vim.keymap.set('n',             'S', '<Plug>(leap-from-window)')
+			vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap)')
+			vim.keymap.set('n', 'S', '<Plug>(leap-from-window)')
 		end
 	},
 	-- better %
@@ -379,7 +383,7 @@ require("lazy").setup({
 		'ibhagwan/fzf-lua',
 		config = function()
 			-- stop putting a giant window over my editor
-			require'fzf-lua'.setup{
+			require 'fzf-lua'.setup {
 				winopts = {
 					split = "belowright 10new",
 					preview = {
@@ -421,25 +425,46 @@ require("lazy").setup({
 					opts.cmd = opts.cmd .. (" | proximity-sort %s"):format(vim.fn.shellescape(vim.fn.expand('%')))
 				end
 				opts.fzf_opts = {
-				  ['--scheme']    = 'path',
-				  ['--tiebreak']  = 'index',
-				  ["--layout"]    = "default",
+					['--scheme']   = 'path',
+					['--tiebreak'] = 'index',
+					["--layout"]   = "default",
 				}
-				require'fzf-lua'.files(opts)
+				require 'fzf-lua'.files(opts)
 			end)
-			-- use fzf to search buffers as well
+			-- use fzf to search buffers with <leader>;
 			vim.keymap.set('n', '<leader>;', function()
-				require'fzf-lua'.buffers({
+				require 'fzf-lua'.buffers({
 					-- just include the paths in the fzf bits, and nothing else
 					-- https://github.com/ibhagwan/fzf-lua/issues/2230#issuecomment-3164258823
 					fzf_opts = {
-					  ["--with-nth"]      = "{-3..-2}",
-					  ["--nth"]           = "-1",
-					  ["--delimiter"]     = "[:\u{2002}]",
-					  ["--header-lines"]  = "false",
+						["--with-nth"]     = "{-3..-2}",
+						["--nth"]          = "-1",
+						["--delimiter"]    = "[:\u{2002}]",
+						["--header-lines"] = "false",
 					},
 					header = false,
 				})
+			end)
+			-- use fzf to search with <leader>s
+			vim.keymap.set('n', '<leader>s', function()
+				require 'fzf-lua'.lsp_live_workspace_symbols()
+			end)
+			-- use fzf to ripgrep project with <leader>g
+			vim.keymap.set('n', '<leader>g', function()
+				require 'fzf-lua'.grep_project({
+					rg_opts = table.concat({
+						"--column",
+						"--line-number",
+						"--no-heading",
+						"--color=always",
+						"--smart-case",
+						"--glob '!Cargo.lock'",
+					}, " ")
+				})
+			end)
+			-- use fzf to ripgrep buffer with <leader>/
+			vim.keymap.set('n', '<leader>/', function()
+				require 'fzf-lua'.lgrep_curbuf()
 			end)
 		end
 	},
@@ -503,11 +528,28 @@ require("lazy").setup({
 				vim.lsp.enable('ruff')
 			end
 
+			-- TypeScript
+			if vim.fn.executable('typescript-language-server') == 1 then
+				vim.lsp.enable('ts_ls')
+			end
+
+			-- Go
+			if vim.fn.executable('gopls') == 1 then
+				vim.lsp.enable('gopls')
+			end
+
+			-- Lua
+			if vim.fn.executable('lua-language-server') == 1 then
+				vim.lsp.enable('lua_ls')
+			end
+
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
 			vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
 			vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
 			vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
+			vim.keymap.set('n', '[e', function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end)
+			vim.keymap.set('n', ']e', function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end)
 			vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist)
 
 			-- Use LspAttach autocommand to only map the following keys
@@ -525,41 +567,52 @@ require("lazy").setup({
 					vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
 					vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
 					vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-					vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+					vim.keymap.set('n', 'gi', function()
+						require 'fzf-lua'.lsp_implementations({ winopts = { preview = { hidden = false } } })
+					end, opts)
 					vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
 					vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
 					vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
 					vim.keymap.set('n', '<leader>wl', function()
 						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 					end, opts)
-					--vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
+					vim.keymap.set('n', '<leader>d', vim.lsp.buf.type_definition, opts)
 					vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, opts)
 					vim.keymap.set({ 'n', 'v' }, '<leader>a', vim.lsp.buf.code_action, opts)
-					vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+					vim.keymap.set('n', 'gr', function()
+						require 'fzf-lua'.lsp_references({ winopts = { preview = { hidden = false } } })
+					end, opts)
+					local lsp_calls_opts = {
+						winopts = { preview = { hidden = false } },
+						file_ignore_patterns = { "%.rustup/", "%.cargo/registry/", "go/pkg/mod/", "GOROOT" },
+					}
+					vim.keymap.set('n', '<leader>ci', function() require 'fzf-lua'.lsp_incoming_calls(lsp_calls_opts) end, opts)
+					vim.keymap.set('n', '<leader>co', function() require 'fzf-lua'.lsp_outgoing_calls(lsp_calls_opts) end, opts)
 					vim.keymap.set('n', '<leader>f', function()
 						vim.lsp.buf.format { async = true }
 					end, opts)
 
 					local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-					-- TODO: find some way to make this only apply to the current line.
-					if client.server_capabilities.inlayHintProvider then
-					    vim.lsp.inlay_hint.enable(true, { 0 })
-					end
-
 					-- None of this semantics tokens business.
 					-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
 					client.server_capabilities.semanticTokensProvider = nil
 
-					-- format on save for Rust
 					if client.server_capabilities.documentFormattingProvider then
-						vim.api.nvim_create_autocmd("BufWritePre", {
-							group = vim.api.nvim_create_augroup("RustFormat", { clear = true }),
-							buffer = bufnr,
-							callback = function()
-								vim.lsp.buf.format({ bufnr = bufnr })
-							end,
-						})
+						local bufnr = ev.buf
+						local bufname = vim.api.nvim_buf_get_name(bufnr)
+						local llvm_root = vim.fn.expand("~/llvm-project/")
+						local skip_autoformat = client.name == "clangd" and bufname:sub(1, #llvm_root) == llvm_root
+
+						if not skip_autoformat then
+							vim.api.nvim_create_autocmd("BufWritePre", {
+								group = vim.api.nvim_create_augroup("LspFormatOnSave", { clear = false }),
+								buffer = bufnr,
+								callback = function()
+									vim.lsp.buf.format({ bufnr = bufnr, async = false })
+								end,
+							})
+						end
 					end
 				end,
 			})
@@ -579,7 +632,7 @@ require("lazy").setup({
 			"hrsh7th/cmp-path",
 		},
 		config = function()
-			local cmp = require'cmp'
+			local cmp = require 'cmp'
 			cmp.setup({
 				snippet = {
 					-- REQUIRED by nvim-cmp. get rid of it once we can
@@ -641,7 +694,10 @@ require("lazy").setup({
 		ft = { "svelte" },
 	},
 	-- toml
-	'cespare/vim-toml',
+	{
+		'cespare/vim-toml',
+		ft = { "toml" },
+	},
 	-- yaml
 	{
 		"cuducos/yaml.nvim",
@@ -654,7 +710,7 @@ require("lazy").setup({
 	{
 		"lervag/vimtex",
 		ft = { "tex" },
-		lazy = false,     -- we don't want to lazy load VimTeX
+		lazy = false, -- we don't want to lazy load VimTeX
 		init = function()
 			vim.g.vimtex_view_method = "zathura"
 			vim.g.vimtex_mappings_enabled = false
@@ -682,40 +738,3 @@ require("lazy").setup({
 		end
 	},
 })
-
---[[
-
-leftover things from init.vim that i may still end up wanting
-
-" Completion
-" Better completion
-" menuone: popup even when there's only one match
-" noinsert: Do not insert text until a selection is made
-" noselect: Do not select, force user to select one from the menu
-set completeopt=menuone,noinsert,noselect
-
-" Settings needed for .lvimrc
-set exrc
-set secure
-
-" Wrapping options
-set formatoptions=tc " wrap text and comments using textwidth
-set formatoptions+=r " continue comments when pressing ENTER in I mode
-set formatoptions+=q " enable formatting of comments with gq
-set formatoptions+=n " detect lists for formatting
-set formatoptions+=b " auto-wrap in insert mode, and do not wrap old long lines
-
-" <leader>s for Rg search
-noremap <leader>s :Rg
-let g:fzf_layout = { 'down': '~20%' }
-command! -bang -nargs=* Rg
-\ call fzf#vim#grep(
-\   'rg --column --line-number --no-heading --color=always '.shellescape(<q-args>), 1,
-\   <bang>0 ? fzf#vim#with_preview('up:60%')
-\           : fzf#vim#with_preview('right:50%:hidden', '?'),
-\   <bang>0)
-
-" <leader>q shows stats
-nnoremap <leader>q g<c-g>
-
---]]
