@@ -382,7 +382,7 @@ require("lazy").setup({
 			require('nvim-rooter').setup()
 		end
 	},
-	-- fzf support for ^p
+	-- fzf support for <leader>b
 	{
 		'ibhagwan/fzf-lua',
 		config = function()
