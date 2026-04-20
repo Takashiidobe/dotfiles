@@ -828,12 +828,19 @@ require("lazy").setup({
 		config = function()
 			local dap = require('dap')
 
+			dap.listeners.on_config['codelldb_rust'] = function(config)
+				if config.type == 'codelldb' and not config.sourceLanguages then
+					config = vim.tbl_extend('force', config, { sourceLanguages = { 'rust' } })
+				end
+				return config
+			end
+
 			dap.adapters.codelldb = {
 				type = 'server',
 				port = '${port}',
 				executable = {
-					command = '/usr/bin/codelldb',
-					args = { '--port', '${port}' },
+					command = '/usr/lib/codelldb/adapter/codelldb',
+					args = { '--port', '${port}', '--liblldb', '/usr/lib/codelldb/lldb/lib/liblldb.so' },
 				},
 			}
 
@@ -848,6 +855,8 @@ require("lazy").setup({
 					end,
 					cwd = '${workspaceFolder}',
 					stopOnEntry = false,
+					terminal = 'console',
+					sourceLanguages = { 'rust' },
 				},
 				{
 					name = 'Debug test',
@@ -872,6 +881,8 @@ require("lazy").setup({
 					end,
 					cwd = '${workspaceFolder}',
 					stopOnEntry = false,
+					terminal = 'console',
+					sourceLanguages = { 'rust' },
 				},
 			}
 
@@ -898,6 +909,19 @@ require("lazy").setup({
 			dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end
 			vim.keymap.set({ 'n', 'v' }, '<leader>de', dapui.eval)
 			vim.keymap.set('n', '<leader>du', dapui.toggle)
+		end,
+	},
+	{
+		'Weissle/persistent-breakpoints.nvim',
+		dependencies = { 'mfussenegger/nvim-dap' },
+		config = function()
+			require('persistent-breakpoints').setup({ load_breakpoints_event = { 'BufReadPost' } })
+			local pb = require('persistent-breakpoints.api')
+			vim.keymap.set('n', '<leader>db', pb.toggle_breakpoint)
+			vim.keymap.set('n', '<leader>dB', function()
+				pb.set_conditional_breakpoint(vim.fn.input('Breakpoint condition: '))
+			end)
+			vim.keymap.set('n', '<leader>dx', pb.clear_all_breakpoints)
 		end,
 	},
 })
