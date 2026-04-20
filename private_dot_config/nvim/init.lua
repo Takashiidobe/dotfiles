@@ -321,7 +321,11 @@ require("lazy").setup({
 	},
 	-- Git fugitive
 	{
-		'tpope/vim-fugitive'
+		'tpope/vim-fugitive',
+		config = function()
+			vim.keymap.set('n', '<leader>G', '<cmd>Git<cr>')
+			vim.keymap.set('n', '<leader>B', '<cmd>Git blame<cr>')
+		end
 	},
 	-- support for github
 	{
@@ -410,12 +414,12 @@ require("lazy").setup({
 					["--layout"] = "default",
 				},
 			}
-			-- when using C-p for quick file open, pass the file list through
+			-- when using <leader>b for quick file open, pass the file list through
 			--
 			--   https://github.com/jonhoo/proximity-sort
 			--
 			-- to prefer files closer to the current file.
-			vim.keymap.set('', '<C-p>', function()
+			vim.keymap.set('', '<leader>b', function()
 				opts = {}
 				opts.cmd = 'fd --color=never --hidden --type f --type l --exclude .git'
 				local base = vim.fn.fnamemodify(vim.fn.expand('%'), ':h:.:S')
@@ -466,6 +470,19 @@ require("lazy").setup({
 			vim.keymap.set('n', '<leader>/', function()
 				require 'fzf-lua'.lgrep_curbuf()
 			end)
+			-- use fzf to browse current-buffer diagnostics with <leader>x
+			vim.keymap.set('n', '<leader>x', function()
+				require 'fzf-lua'.diagnostics_document()
+			end)
+			vim.keymap.set('n', '<leader>.', function()
+				require 'fzf-lua'.resume()
+			end)
+			vim.keymap.set('n', '<leader>O', function()
+				require 'fzf-lua'.oldfiles()
+			end)
+			vim.keymap.set('n', '<leader>?', function()
+				require 'fzf-lua'.keymaps()
+			end)
 		end
 	},
 	-- LSP
@@ -482,12 +499,14 @@ require("lazy").setup({
 					["rust-analyzer"] = {
 						cargo = {
 							features = "all",
+							allTargets = true,
 						},
 						checkOnSave = {
 							enable = true,
 						},
 						check = {
 							command = "clippy",
+							allTargets = true,
 						},
 						imports = {
 							group = {
@@ -563,20 +582,41 @@ require("lazy").setup({
 					-- Buffer local mappings.
 					-- See `:help vim.lsp.*` for documentation on any of the below functions
 					local opts = { buffer = ev.buf }
-					vim.keymap.set({ 'n', 'v' }, 'ga', vim.lsp.buf.code_action, opts)
-					vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-					vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+					vim.keymap.set({ 'n', 'v' }, 'ga', function()
+						require 'fzf-lua'.lsp_code_actions({ silent = true })
+					end, opts)
+					vim.keymap.set('n', 'gD', function()
+						require 'fzf-lua'.lsp_declarations({ winopts = { preview = { hidden = false } } })
+					end, opts)
+					vim.keymap.set('n', 'gd', function()
+						require 'fzf-lua'.lsp_definitions({ winopts = { preview = { hidden = false } } })
+					end, opts)
 					vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
 					vim.keymap.set('n', 'gi', function()
 						require 'fzf-lua'.lsp_implementations({ winopts = { preview = { hidden = false } } })
 					end, opts)
 					vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+					vim.keymap.set('n', '<leader>i', function()
+						local bufnr = vim.api.nvim_get_current_buf()
+						vim.lsp.inlay_hint.enable(
+							not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }),
+							{ bufnr = bufnr }
+						)
+					end, opts)
 					vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
 					vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
 					vim.keymap.set('n', '<leader>wl', function()
 						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 					end, opts)
-					vim.keymap.set('n', '<leader>d', vim.lsp.buf.type_definition, opts)
+					vim.keymap.set('n', '<leader>d', function()
+						require 'fzf-lua'.lsp_typedefs({ winopts = { preview = { hidden = false } } })
+					end, opts)
+					vim.keymap.set('n', '<leader>S', function()
+						require 'fzf-lua'.lsp_document_symbols()
+					end, opts)
+					vim.keymap.set('n', '<leader>l', function()
+						require 'fzf-lua'.lsp_finder({ winopts = { preview = { hidden = false } } })
+					end, opts)
 					vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, opts)
 					vim.keymap.set({ 'n', 'v' }, '<leader>a', vim.lsp.buf.code_action, opts)
 					vim.keymap.set('n', 'gr', function()
@@ -740,9 +780,9 @@ require("lazy").setup({
 	-- treesitter
 	{
 		'nvim-treesitter/nvim-treesitter',
+		branch = 'master',
 		build = ':TSUpdate',
 		config = function()
-			vim.opt.rtp:prepend(vim.fn.stdpath('data') .. '/lazy/nvim-treesitter')
 			require('nvim-treesitter.configs').setup({
 				ensure_installed = { 'rust', 'lua', 'toml' },
 				highlight = { enable = false },
@@ -765,8 +805,13 @@ require("lazy").setup({
 				adapters = {
 					require('neotest-rust'),
 				},
+				output = {
+					open_on_run = true,
+				},
 			})
 			vim.keymap.set('n', '<leader>tr', function() require('neotest').run.run() end)
+			vim.keymap.set('n', '<leader>tl', function() require('neotest').run.run_last() end)
+			vim.keymap.set('n', '<leader>tq', function() require('neotest').run.stop() end)
 			vim.keymap.set('n', '<leader>td', function() require('neotest').run.run({ strategy = 'dap' }) end)
 			vim.keymap.set('n', '<leader>tf', function() require('neotest').run.run(vim.fn.expand('%')) end)
 			vim.keymap.set('n', '<leader>ta', function() require('neotest').run.run(vim.fn.getcwd()) end)
@@ -813,9 +858,9 @@ require("lazy").setup({
 						for line in output:gmatch('[^\n]+') do
 							local ok, data = pcall(vim.fn.json_decode, line)
 							if ok and data and data.executable
-								and data.profile and data.profile.test
-								and data.target and data.target.kind
-								and vim.tbl_contains(data.target.kind, 'lib') then
+									and data.profile and data.profile.test
+									and data.target and data.target.kind
+									and vim.tbl_contains(data.target.kind, 'lib') then
 								return data.executable
 							end
 						end
@@ -831,10 +876,14 @@ require("lazy").setup({
 			}
 
 			vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint)
+			vim.keymap.set('n', '<leader>dB', function()
+				dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
+			end)
 			vim.keymap.set('n', '<leader>dc', dap.continue)
 			vim.keymap.set('n', '<leader>dn', dap.step_over)
 			vim.keymap.set('n', '<leader>di', dap.step_into)
 			vim.keymap.set('n', '<leader>do', dap.step_out)
+			vim.keymap.set('n', '<leader>dh', dap.run_to_cursor)
 			vim.keymap.set('n', '<leader>dq', dap.terminate)
 		end,
 	},
@@ -844,9 +893,10 @@ require("lazy").setup({
 		config = function()
 			local dap, dapui = require('dap'), require('dapui')
 			dapui.setup()
-			dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end
+			dap.listeners.after.event_stopped['dapui_config'] = function() dapui.open() end
 			dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end
 			dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end
+			vim.keymap.set({ 'n', 'v' }, '<leader>de', dapui.eval)
 			vim.keymap.set('n', '<leader>du', dapui.toggle)
 		end,
 	},
