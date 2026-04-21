@@ -694,12 +694,19 @@ require("lazy").setup({
 							has_lib = vim.fn.filereadable(cargo_dir .. '/src/lib.rs') == 1
 						end
 
-						-- derive module path from file path relative to src/
+						-- derive module path and target flags from file location
 						local mod_prefix = crate_name or ''
 						local file = vim.fn.expand('%:p')
+						local integration_test_name = nil
 						if cargo_dir then
+							local tests_dir = cargo_dir .. '/tests/'
 							local src_dir = cargo_dir .. '/src/'
-							if file:sub(1, #src_dir) == src_dir then
+							if file:sub(1, #tests_dir) == tests_dir then
+								-- integration test: target is the filename, module prefix is empty
+								local rel = file:sub(#tests_dir + 1):gsub('%.rs$', '')
+								integration_test_name = rel:gsub('/', '-')
+								mod_prefix = rel:gsub('/', '::')
+							elseif file:sub(1, #src_dir) == src_dir then
 								local rel = file:sub(#src_dir + 1):gsub('%.rs$', ''):gsub('/mod$', '')
 								if rel ~= 'lib' and rel ~= 'main' then
 									mod_prefix = mod_prefix .. '::' .. rel:gsub('/', '::')
@@ -778,7 +785,9 @@ require("lazy").setup({
 								end
 								query = find_path(symbols, mod_prefix) or (mod_prefix .. '::' .. fn_name)
 							end
-							run_asm(query, has_lib and { '--lib' } or {})
+							local target_args = integration_test_name and { '--test', integration_test_name }
+							or (has_lib and { '--lib' } or {})
+							run_asm(query, target_args)
 						end)
 					end, opts)
 
