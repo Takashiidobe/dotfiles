@@ -2,11 +2,17 @@
 vim.keymap.set("n", "<Space>", "<Nop>", { silent = true })
 vim.g.mapleader = " "
 
+-- disable netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -------------------------------------------------------------------------------
 --
 -- preferences
 --
 -------------------------------------------------------------------------------
+-- use 24-bit color
+vim.opt.termguicolors = true
 -- never ever folding
 vim.opt.foldenable = false
 vim.opt.foldmethod = 'manual'
@@ -45,7 +51,7 @@ vim.opt.undofile = true
 vim.opt.wildmode = 'list:longest'
 -- when opening a file with a command (like :e),
 -- don't suggest files like there:
-vim.opt.wildignore = '.hg,.svn,*~,*.png,*.jpg,*.gif,*.min.js,*.swp,*.o,vendor,dist,_site'
+vim.opt.wildignore = '.git,.hg,.svn,*~,*.png,*.jpg,*.gif,*.min.js,*.swp,*.o,vendor,dist,_site'
 -- tabs: go big or go home
 vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
@@ -155,6 +161,8 @@ vim.keymap.set('n', '<leader>m', 'ct_')
 -- F1 is pretty close to Esc, so you probably meant Esc
 vim.keymap.set('', '<F1>', '<Esc>')
 vim.keymap.set('i', '<F1>', '<Esc>')
+-- Clear highlights with Esc
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<cr>')
 
 -------------------------------------------------------------------------------
 --
@@ -277,6 +285,32 @@ require("lazy").setup({
 			-- call Base16hi("CocHintSign", g:base16_gui03, "", g:base16_cterm03, "", "", "")
 		end
 	},
+	{
+		"nvim-tree/nvim-tree.lua",
+		dependencies = "nvim-tree/nvim-web-devicons",
+
+		config = function()
+			require("nvim-tree").setup({
+				actions = {
+					change_dir = {
+						enable = true,
+						global = true
+					},
+					open_file = {
+						resize_window = true
+					}
+				},
+				renderer = {
+					indent_markers = {
+						enable = true
+					}
+				},
+				view = {
+					width = 40
+				}
+			})
+		end
+	},
 	-- nice bar at the bottom
 	{
 		'itchyny/lightline.vim',
@@ -318,6 +352,9 @@ require("lazy").setup({
 				true
 			)
 		end
+	},
+	{
+
 	},
 	-- Git fugitive
 	{
@@ -933,15 +970,47 @@ require("lazy").setup({
 		ft = 'rust',
 	},
 	{
+		'saecki/crates.nvim',
+		event = { "BufRead Cargo.toml" },
+		config = function()
+			require('crates').setup()
+			local crates = require("crates")
+			local opts = { silent = true }
+
+			vim.keymap.set("n", "<leader>ct", crates.toggle, opts)
+			vim.keymap.set("n", "<leader>cr", crates.reload, opts)
+
+			vim.keymap.set("n", "<leader>cv", crates.show_versions_popup, opts)
+			vim.keymap.set("n", "<leader>cf", crates.show_features_popup, opts)
+			vim.keymap.set("n", "<leader>cd", crates.show_dependencies_popup, opts)
+
+			vim.keymap.set("n", "<leader>cu", crates.update_crate, opts)
+			vim.keymap.set("v", "<leader>cu", crates.update_crates, opts)
+			vim.keymap.set("n", "<leader>ca", crates.update_all_crates, opts)
+			vim.keymap.set("n", "<leader>cU", crates.upgrade_crate, opts)
+			vim.keymap.set("v", "<leader>cU", crates.upgrade_crates, opts)
+			vim.keymap.set("n", "<leader>cA", crates.upgrade_all_crates, opts)
+
+			vim.keymap.set("n", "<leader>ce", crates.expand_plain_crate_to_inline_table, opts)
+			vim.keymap.set("n", "<leader>cE", crates.extract_crate_into_table, opts)
+
+			vim.keymap.set("n", "<leader>cH", crates.open_homepage, opts)
+			vim.keymap.set("n", "<leader>cR", crates.open_repository, opts)
+			vim.keymap.set("n", "<leader>cD", crates.open_documentation, opts)
+			vim.keymap.set("n", "<leader>cC", crates.open_crates_io, opts)
+			vim.keymap.set("n", "<leader>cL", crates.open_lib_rs, opts)
+		end,
+	},
+	{
 		"coder/claudecode.nvim",
 		dependencies = { "folke/snacks.nvim" },
 		config = true,
 		keys = {
-			{ "<leader>cc", "<cmd>ClaudeCode<cr>",           desc = "Toggle Claude" },
-			{ "<leader>cs", "<cmd>ClaudeCodeSend<cr>",       mode = "v",            desc = "Send to Claude" },
+			{ "<leader>cc",  "<cmd>ClaudeCode<cr>",           desc = "Toggle Claude" },
+			{ "<leader>ccs", "<cmd>ClaudeCodeSend<cr>",       mode = "v",            desc = "Send to Claude" },
 			-- Diff management
-			{ "<leader>ad", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
-			{ "<leader>dd", "<cmd>ClaudeCodeDiffDeny<cr>",   desc = "Deny diff" },
+			{ "<leader>cad", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
+			{ "<leader>cdd", "<cmd>ClaudeCodeDiffDeny<cr>",   desc = "Deny diff" },
 		},
 	},
 	{
@@ -981,7 +1050,7 @@ require("lazy").setup({
 				end,
 			})
 
-			vim.keymap.set('v', '<leader>cs', function()
+			vim.keymap.set('v', '<leader>cxs', function()
 				require('codex').actions.send_selection()
 			end, { desc = 'Codex: Send selection' })
 
