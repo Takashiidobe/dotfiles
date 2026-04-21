@@ -631,8 +631,11 @@ require("lazy").setup({
 					vim.keymap.set('n', '<leader>f', function()
 						vim.lsp.buf.format { async = true }
 					end, opts)
-
 					local client = vim.lsp.get_client_by_id(ev.data.client_id)
+					local encoding = client and client.offset_encoding or 'utf-16'
+
+					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'), opts)
+					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'), opts)
 
 					-- None of this semantics tokens business.
 					-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
@@ -924,4 +927,67 @@ require("lazy").setup({
 			vim.keymap.set('n', '<leader>dx', pb.clear_all_breakpoints)
 		end,
 	},
+	{
+		'vxpm/ferris.nvim',
+		opts = {},
+		ft = 'rust',
+	},
+	{
+		"coder/claudecode.nvim",
+		dependencies = { "folke/snacks.nvim" },
+		config = true,
+		keys = {
+			{ "<leader>cc", "<cmd>ClaudeCode<cr>",           desc = "Toggle Claude" },
+			{ "<leader>cs", "<cmd>ClaudeCodeSend<cr>",       mode = "v",            desc = "Send to Claude" },
+			-- Diff management
+			{ "<leader>ad", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
+			{ "<leader>dd", "<cmd>ClaudeCodeDiffDeny<cr>",   desc = "Deny diff" },
+		},
+	},
+	{
+		'rhart92/codex.nvim', -- depends on codex CLI. Make sure it is installed
+		config = function()
+			require('codex').setup {
+				split = 'vertical',
+				size = 0.3,
+				float = {
+					width = 1,
+					height = 0.6,
+					border = 'rounded',
+					row = nil,
+					col = nil,
+					title = 'codex',
+				},
+				codex_cmd = { 'codex' },
+				focus_after_send = true,
+				log_level = 'debug',
+				autostart = false,
+			}
+
+			local group = vim.api.nvim_create_augroup('CodexHideStatusColumn', { clear = true })
+			vim.api.nvim_create_autocmd('BufWinEnter', {
+				group = group,
+				callback = function(args)
+					if vim.bo[args.buf].filetype ~= 'codex' then
+						return
+					end
+					local win = vim.api.nvim_get_current_win()
+					if not vim.api.nvim_win_is_valid(win) then
+						return
+					end
+					vim.api.nvim_set_option_value('statuscolumn', '', { win = win })
+					vim.api.nvim_set_option_value('number', false, { win = win })
+					vim.api.nvim_set_option_value('relativenumber', false, { win = win })
+				end,
+			})
+
+			vim.keymap.set('v', '<leader>cs', function()
+				require('codex').actions.send_selection()
+			end, { desc = 'Codex: Send selection' })
+
+			vim.keymap.set('n', '<leader>cx', function()
+				require('codex').toggle()
+			end, { desc = 'Codex: Toggle' })
+		end,
+	}
 })
