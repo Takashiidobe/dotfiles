@@ -2,6 +2,22 @@
 vim.keymap.set("n", "<Space>", "<Nop>", { silent = true })
 vim.g.mapleader = " "
 
+-------------------------------------------------------------------------------
+--
+-- platform
+--
+-------------------------------------------------------------------------------
+local is_mac = vim.fn.has('mac') == 1
+local open_cmd = is_mac and 'open' or 'xdg-open'
+local clipboard_copy = is_mac and 'pbcopy' or 'wl-copy'
+local clipboard_paste = is_mac and 'pbpaste' or 'wl-paste'
+local codelldb_cmd = is_mac
+	and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or '/opt/homebrew/bin/codelldb')
+	or '/usr/lib/codelldb/adapter/codelldb'
+local liblldb_path = is_mac
+	and '/opt/homebrew/lib/liblldb.dylib'
+	or '/usr/lib/codelldb/lldb/lib/liblldb.so'
+
 -- disable netrw
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -75,7 +91,7 @@ vim.opt.diffopt:append('indent-heuristic')
 -- show a column at 80 characters as a guide for long lines
 vim.opt.colorcolumn = '80'
 --- except in Rust where the rule is 100 characters
-vim.api.nvim_create_autocmd('Filetype', { pattern = 'rust', command = 'set colorcolumn=100' })
+vim.api.nvim_create_autocmd('Filetype', { pattern = 'rust', callback = function() vim.opt_local.colorcolumn = '100' end })
 -- show more hidden characters
 -- also, show tabs nicer
 vim.opt.listchars = 'tab:^ ,nbsp:¬,extends:»,precedes:«,trail:•'
@@ -95,27 +111,9 @@ vim.keymap.set('n', 'gb', '<C-O>')
 -- go forward to next buffer
 vim.keymap.set('n', 'gn', '<C-I>')
 -- Ctrl+j and Ctrl+k as Esc
-vim.keymap.set('n', '<C-j>', '<Esc>')
-vim.keymap.set('i', '<C-j>', '<Esc>')
-vim.keymap.set('v', '<C-j>', '<Esc>')
-vim.keymap.set('s', '<C-j>', '<Esc>')
-vim.keymap.set('x', '<C-j>', '<Esc>')
-vim.keymap.set('c', '<C-j>', '<Esc>')
-vim.keymap.set('o', '<C-j>', '<Esc>')
-vim.keymap.set('l', '<C-j>', '<Esc>')
-vim.keymap.set('t', '<C-j>', '<Esc>')
--- Ctrl-j is a little awkward unfortunately:
 -- https://github.com/neovim/neovim/issues/5916
--- So we also map Ctrl+k
-vim.keymap.set('n', '<C-k>', '<Esc>')
-vim.keymap.set('i', '<C-k>', '<Esc>')
-vim.keymap.set('v', '<C-k>', '<Esc>')
-vim.keymap.set('s', '<C-k>', '<Esc>')
-vim.keymap.set('x', '<C-k>', '<Esc>')
-vim.keymap.set('c', '<C-k>', '<Esc>')
-vim.keymap.set('o', '<C-k>', '<Esc>')
-vim.keymap.set('l', '<C-k>', '<Esc>')
-vim.keymap.set('t', '<C-k>', '<Esc>')
+vim.keymap.set({ 'n', 'i', 'v', 's', 'x', 'c', 'o', 'l', 't' }, '<C-j>', '<Esc>')
+vim.keymap.set({ 'n', 'i', 'v', 's', 'x', 'c', 'o', 'l', 't' }, '<C-k>', '<Esc>')
 -- Ctrl+h to stop searching
 vim.keymap.set('v', '<C-h>', '<cmd>nohlsearch<cr>')
 vim.keymap.set('n', '<C-h>', '<cmd>nohlsearch<cr>')
@@ -125,8 +123,8 @@ vim.keymap.set('', 'L', '$')
 -- Neat X clipboard integration
 -- <leader>p will paste clipboard into buffer
 -- <leader>c will copy entire buffer into clipboard
-vim.keymap.set('n', '<leader>p', '<cmd>read !wl-paste<cr>')
-vim.keymap.set('n', '<leader>c', '<cmd>w !wl-copy<cr><cr>')
+vim.keymap.set('n', '<leader>p', function() vim.cmd('read !' .. clipboard_paste) end)
+vim.keymap.set('n', '<leader>C', function() vim.cmd('w !' .. clipboard_copy) end)
 -- <leader><leader> toggles between buffers
 vim.keymap.set('n', '<leader><leader>', '<c-^>')
 -- <leader>, shows/hides hidden characters
@@ -156,7 +154,7 @@ vim.keymap.set('n', '<right>', ':bn<cr>')
 vim.keymap.set('n', 'j', 'gj')
 vim.keymap.set('n', 'k', 'gk')
 -- handy keymap for replacing up to next _ (like in variable names)
-vim.keymap.set('n', '<leader>m', 'ct_')
+vim.keymap.set('n', '<leader>_', 'ct_')
 -- F1 is pretty close to Esc, so you probably meant Esc
 vim.keymap.set('', '<F1>', '<Esc>')
 vim.keymap.set('i', '<F1>', '<Esc>')
@@ -177,66 +175,128 @@ vim.diagnostic.config({ virtual_text = true, virtual_lines = false })
 --
 -------------------------------------------------------------------------------
 -- highlight yanked text
-vim.api.nvim_create_autocmd(
-	'TextYankPost',
-	{
-		pattern = '*',
-		command = 'silent! lua vim.highlight.on_yank({ timeout = 500 })'
-	}
-)
+vim.api.nvim_create_autocmd('TextYankPost', {
+	pattern = '*',
+	callback = function() vim.highlight.on_yank({ timeout = 500 }) end,
+})
 -- jump to last edit position on opening file
-vim.api.nvim_create_autocmd(
-	'BufReadPost',
-	{
-		pattern = '*',
-		callback = function(ev)
-			if vim.fn.line("'\"") > 1 and vim.fn.line("'\"") <= vim.fn.line("$") then
-				-- except for in git commit messages
-				-- https://stackoverflow.com/questions/31449496/vim-ignore-specifc-file-in-autocommand
-				if not vim.fn.expand('%:p'):find('.git', 1, true) then
-					vim.cmd('exe "normal! g\'\\""')
-				end
-			end
+vim.api.nvim_create_autocmd('BufReadPost', {
+	pattern = '*',
+	callback = function()
+		local mark = vim.api.nvim_buf_get_mark(0, '"')
+		local line_count = vim.api.nvim_buf_line_count(0)
+		-- except for git commit messages
+		if mark[1] > 1 and mark[1] <= line_count and not vim.fn.expand('%:p'):find('.git', 1, true) then
+			vim.api.nvim_win_set_cursor(0, mark)
 		end
-	}
-)
+	end,
+})
 -- prevent accidental writes to buffers that shouldn't be edited
-vim.api.nvim_create_autocmd('BufRead', { pattern = '*.orig', command = 'set readonly' })
-vim.api.nvim_create_autocmd('BufRead', { pattern = '*.pacnew', command = 'set readonly' })
--- leave paste mode when leaving insert mode (if it was on)
-vim.api.nvim_create_autocmd('InsertLeave', { pattern = '*', command = 'set nopaste' })
--- help filetype detection (add as needed)
---vim.api.nvim_create_autocmd('BufRead', { pattern = '*.ext', command = 'set filetype=someft' })
--- correctly classify mutt buffers
-local email = vim.api.nvim_create_augroup('email', { clear = true })
-vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
-	pattern = '/tmp/mutt*',
-	group = email,
-	command = 'setfiletype mail',
-})
--- also, produce "flowed text" wrapping
--- https://brianbuccola.com/line-breaks-in-mutt-and-vim/
-vim.api.nvim_create_autocmd('Filetype', {
-	pattern = 'mail',
-	group = email,
-	command = 'setlocal formatoptions+=w',
-})
+vim.api.nvim_create_autocmd('BufRead', { pattern = '*.orig', callback = function() vim.bo.readonly = true end })
+vim.api.nvim_create_autocmd('BufRead', { pattern = '*.pacnew', callback = function() vim.bo.readonly = true end })
 -- shorter columns in text because it reads better that way
 local text = vim.api.nvim_create_augroup('text', { clear = true })
-for _, pat in ipairs({ 'text', 'markdown', 'mail', 'gitcommit' }) do
-	vim.api.nvim_create_autocmd('Filetype', {
-		pattern = pat,
-		group = text,
-		command = 'setlocal spell tw=72 colorcolumn=73',
-	})
-end
+vim.api.nvim_create_autocmd('Filetype', {
+	pattern = { 'text', 'markdown', 'gitcommit' },
+	group = text,
+	callback = function()
+		vim.opt_local.spell = true
+		vim.opt_local.textwidth = 72
+		vim.opt_local.colorcolumn = '73'
+	end,
+})
 --- tex has so much syntax that a little wider is ok
 vim.api.nvim_create_autocmd('Filetype', {
 	pattern = 'tex',
 	group = text,
-	command = 'setlocal spell tw=80 colorcolumn=81',
+	callback = function()
+		vim.opt_local.spell = true
+		vim.opt_local.textwidth = 80
+		vim.opt_local.colorcolumn = '81'
+	end,
 })
--- TODO: no autocomplete in text
+
+-------------------------------------------------------------------------------
+--
+-- dependency checker
+--
+-------------------------------------------------------------------------------
+vim.api.nvim_create_user_command('CheckDeps', function()
+	local deps = {
+		{ group = 'Core',   name = 'git',                        cmd = 'git' },
+		{ group = 'Core',   name = 'cc (C compiler)',            cmd = 'cc' },
+		{ group = 'Core',   name = 'fzf',                        cmd = 'fzf' },
+		{ group = 'Core',   name = 'ripgrep (rg)',               cmd = 'rg' },
+		{ group = 'Core',   name = 'fd',                         cmd = 'fd' },
+		{ group = 'Core',   name = 'proximity-sort',             cmd = 'proximity-sort' },
+		{ group = 'Core',   name = clipboard_copy,               cmd = clipboard_copy },
+		{ group = 'Core',   name = clipboard_paste,              cmd = clipboard_paste },
+		{ group = 'AI',     name = 'claude',                     cmd = 'claude' },
+		{ group = 'AI',     name = 'codex',                      cmd = 'codex' },
+		{ group = 'Rust',   name = 'rust-analyzer',              cmd = 'rust-analyzer' },
+		{ group = 'Rust',   name = 'cargo',                      cmd = 'cargo' },
+		{ group = 'Rust',   name = 'cargo-nextest',              cmd = 'cargo-nextest' },
+		{ group = 'Rust',   name = 'cargo-show-asm',             cmd = 'cargo-show-asm' },
+		{ group = 'Rust',   name = 'cargo-flamegraph',           cmd = 'cargo-flamegraph' },
+		{ group = 'Rust',   name = 'cargo-semver-checks',        cmd = 'cargo-semver-checks' },
+		{ group = 'Rust',   name = 'codelldb',                   cmd = codelldb_cmd, path = true },
+		not is_mac and { group = 'Rust', name = 'perf (flamegraph)', cmd = 'perf' } or nil,
+		{ group = 'LSP',    name = 'node (for TS/bash LSPs)',    cmd = 'node' },
+		{ group = 'LSP',    name = 'clangd',                     cmd = 'clangd' },
+		{ group = 'LSP',    name = 'gopls',                      cmd = 'gopls' },
+		{ group = 'LSP',    name = 'lua-language-server',        cmd = 'lua-language-server' },
+		{ group = 'LSP',    name = 'typescript-language-server', cmd = 'typescript-language-server' },
+		{ group = 'LSP*',   name = 'bash-language-server',       cmd = 'bash-language-server' },
+		{ group = 'LSP*',   name = 'texlab',                     cmd = 'texlab' },
+		{ group = 'LSP*',   name = 'ruff',                       cmd = 'ruff' },
+		{ group = 'Tools*', name = 'zathura',                    cmd = 'zathura' },
+	}
+
+	-- nvim version check
+	local v = vim.version()
+	local nvim_ok = v.major > 0 or v.minor >= 11
+	local nvim_str = string.format('v%d.%d.%d', v.major, v.minor, v.patch)
+
+	local lines = {
+		'Dependency Status  (* = optional)',
+		string.rep('─', 48),
+		string.format('  %s  nvim %s (need ≥ 0.11)', nvim_ok and '✓' or '✗', nvim_str),
+		'',
+	}
+	local group = nil
+	for _, dep in ipairs(deps) do
+		if not dep then goto continue end
+		if dep.group ~= group then
+			if group then table.insert(lines, '') end
+			table.insert(lines, '[' .. dep.group .. ']')
+			group = dep.group
+		end
+		local ok = dep.path
+			and vim.uv.fs_stat(dep.cmd) ~= nil
+			or vim.fn.executable(dep.cmd) == 1
+		table.insert(lines, string.format('  %s  %s', ok and '✓' or '✗', dep.name))
+		::continue::
+	end
+
+	local buf = vim.api.nvim_create_buf(false, true)
+	local width = 54
+	local height = #lines + 2
+	vim.api.nvim_open_win(buf, true, {
+		relative = 'editor',
+		width = width,
+		height = height,
+		row = math.floor((vim.o.lines - height) / 2),
+		col = math.floor((vim.o.columns - width) / 2),
+		style = 'minimal',
+		border = 'rounded',
+		title = ' CheckDeps ',
+		title_pos = 'center',
+	})
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+	vim.bo[buf].modifiable = false
+	vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = buf, silent = true })
+	vim.keymap.set('n', '<Esc>', '<cmd>close<cr>', { buffer = buf, silent = true })
+end, {})
 
 -------------------------------------------------------------------------------
 --
@@ -246,7 +306,7 @@ vim.api.nvim_create_autocmd('Filetype', {
 -- first, grab the manager
 -- https://github.com/folke/lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -333,7 +393,7 @@ require("lazy").setup({
 					filename = 'LightlineFilename'
 				},
 			}
-			function LightlineFilenameInLua(opts)
+			function LightlineFilenameInLua()
 				if vim.fn.expand('%:t') == '' then
 					return '[No Name]'
 				else
@@ -342,25 +402,23 @@ require("lazy").setup({
 			end
 
 			-- https://github.com/itchyny/lightline.vim/issues/657
-			vim.api.nvim_exec(
+			vim.api.nvim_exec2(
 				[[
 				function! g:LightlineFilename()
 					return v:lua.LightlineFilenameInLua()
 				endfunction
 				]],
-				true
+				{ output = false }
 			)
 		end
-	},
-	{
-
 	},
 	-- Git fugitive
 	{
 		'tpope/vim-fugitive',
 		config = function()
-			vim.keymap.set('n', '<leader>G', '<cmd>Git<cr>')
+			vim.keymap.set('n', '<leader>GG', '<cmd>Git<cr>')
 			vim.keymap.set('n', '<leader>B', '<cmd>Git blame<cr>')
+			vim.keymap.set({ 'n', 'v' }, '<leader>GB', '<cmd>GBrowse<cr>')
 		end
 	},
 	-- support for github
@@ -398,15 +456,18 @@ require("lazy").setup({
 			}
 		},
 		config = function()
-			vim.keymap.set('', '<leader>t', function()
+			local prose_keys_set = false
+			vim.keymap.set('', '<leader>T', function()
 				vim.cmd([[
 					:NoNeckPain
 					:set formatoptions-=tc linebreak tw=0 cc=0 wrap wm=20 noautoindent nocindent nosmartindent indentkeys=
 				]])
-				-- make 0, ^ and $ behave better in wrapped text
-				vim.keymap.set('n', '0', 'g0')
-				vim.keymap.set('n', '$', 'g$')
-				vim.keymap.set('n', '^', 'g^')
+				if not prose_keys_set then
+					vim.keymap.set('n', '0', 'g0')
+					vim.keymap.set('n', '$', 'g$')
+					vim.keymap.set('n', '^', 'g^')
+					prose_keys_set = true
+				end
 			end)
 		end
 	},
@@ -456,7 +517,7 @@ require("lazy").setup({
 			--
 			-- to prefer files closer to the current file.
 			vim.keymap.set('', '<leader>b', function()
-				opts = {}
+				local opts = {}
 				opts.cmd = 'fd --color=never --hidden --type f --type l --exclude .git'
 				local base = vim.fn.fnamemodify(vim.fn.expand('%'), ':h:.:S')
 				if base ~= '.' then
@@ -537,9 +598,6 @@ require("lazy").setup({
 							features = "all",
 							allTargets = true,
 						},
-						checkOnSave = {
-							enable = true,
-						},
 						check = {
 							command = "clippy",
 							allTargets = true,
@@ -601,16 +659,44 @@ require("lazy").setup({
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
 			vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
-			vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
-			vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
-			vim.keymap.set('n', '[e', function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end)
-			vim.keymap.set('n', ']e', function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end)
+			vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1 }) end)
+			vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1 }) end)
+			vim.keymap.set('n', '[e',
+				function() vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR }) end)
+			vim.keymap.set('n', ']e',
+				function() vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR }) end)
 			vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist)
+
+			local function cargo_bench_targets()
+				local cargo_toml = vim.fn.findfile('Cargo.toml', '.;')
+				if cargo_toml == '' then return nil, nil end
+				local cargo_dir = vim.fn.fnamemodify(cargo_toml, ':p:h')
+				local names, in_bench = {}, false
+				for line in io.lines(cargo_toml) do
+					if line:match('^%[%[bench%]%]') then
+						in_bench = true
+					elseif line:match('^%[') then
+						in_bench = false
+					elseif in_bench then
+						local name = line:match('^name%s*=%s*"([^"]+)"')
+						if name then table.insert(names, name) end
+					end
+				end
+				return cargo_dir, names
+			end
+
+			local function infer_bench_name(cargo_dir)
+				local file = vim.fn.expand('%:p')
+				local benches_dir = cargo_dir .. '/benches/'
+				if file:sub(1, #benches_dir) == benches_dir then
+					return vim.fn.fnamemodify(file, ':t:r')
+				end
+			end
 
 			-- Use LspAttach autocommand to only map the following keys
 			-- after the language server attaches to the current buffer
 			vim.api.nvim_create_autocmd('LspAttach', {
-				group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+				group = vim.api.nvim_create_augroup('UserLspConfig', { clear = true }),
 				callback = function(ev)
 					-- Enable completion triggered by <c-x><c-o>
 					vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
@@ -639,12 +725,12 @@ require("lazy").setup({
 							{ bufnr = bufnr }
 						)
 					end, opts)
-					vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
-					vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
-					vim.keymap.set('n', '<leader>wl', function()
+					vim.keymap.set('n', '<leader>Wa', vim.lsp.buf.add_workspace_folder, opts)
+					vim.keymap.set('n', '<leader>Wr', vim.lsp.buf.remove_workspace_folder, opts)
+					vim.keymap.set('n', '<leader>Wl', function()
 						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 					end, opts)
-					vim.keymap.set('n', '<leader>d', function()
+					vim.keymap.set('n', '<leader>D', function()
 						require 'fzf-lua'.lsp_typedefs({ winopts = { preview = { hidden = false } } })
 					end, opts)
 					vim.keymap.set('n', '<leader>S', function()
@@ -668,7 +754,6 @@ require("lazy").setup({
 						vim.lsp.buf.format { async = true }
 					end, opts)
 					local client = vim.lsp.get_client_by_id(ev.data.client_id)
-					local encoding = client and client.offset_encoding or 'utf-16'
 
 					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'), opts)
 					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'), opts)
@@ -768,10 +853,10 @@ require("lazy").setup({
 
 						-- use documentSymbol to find the full symbol path at the cursor
 						local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1
-						local params = { textDocument = vim.lsp.util.make_text_document_params() }
-						vim.lsp.buf_request(0, 'textDocument/documentSymbol', params, function(err, symbols)
+						local lsp_client = vim.lsp.get_clients({ bufnr = 0 })[1]
+						local function resolve_and_run(symbols)
 							local query
-							if err or not symbols or #symbols == 0 then
+							if not symbols or #symbols == 0 then
 								query = mod_prefix .. '::' .. fn_name
 							else
 								local function find_path(syms, prefix)
@@ -786,16 +871,133 @@ require("lazy").setup({
 								query = find_path(symbols, mod_prefix) or (mod_prefix .. '::' .. fn_name)
 							end
 							local target_args = integration_test_name and { '--test', integration_test_name }
-							or (has_lib and { '--lib' } or {})
+									or (has_lib and { '--lib' } or {})
 							run_asm(query, target_args)
-						end)
+						end
+						if lsp_client then
+							local params = { textDocument = vim.lsp.util.make_text_document_params() }
+							lsp_client:request('textDocument/documentSymbol', params, function(err, symbols)
+								resolve_and_run(not err and symbols or nil)
+							end, 0)
+						else
+							resolve_and_run(nil)
+						end
+					end, opts)
+
+					vim.keymap.set('n', '<leader>mb', function()
+						local cargo_dir, bench_names = cargo_bench_targets()
+						if not cargo_dir or not bench_names or #bench_names == 0 then
+							vim.notify('No [[bench]] targets found', vim.log.levels.WARN)
+							return
+						end
+						local function run(name)
+							vim.ui.input({ prompt = 'Filter (empty = all): ' }, function(filter)
+								if filter == nil then return end
+								local cmd = { 'cargo', 'bench', '--bench', name }
+								if filter ~= '' then vim.list_extend(cmd, { '--', filter }) end
+								vim.cmd('belowright 15new')
+								vim.fn.termopen(cmd, { cwd = cargo_dir })
+								vim.cmd('startinsert')
+							end)
+						end
+						local inferred = infer_bench_name(cargo_dir)
+						if inferred and vim.tbl_contains(bench_names, inferred) then
+							run(inferred)
+						elseif #bench_names == 1 then
+							run(bench_names[1])
+						else
+							require('fzf-lua').fzf_exec(bench_names, {
+								prompt = 'Bench> ',
+								actions = { ['default'] = function(sel) if sel and sel[1] then run(sel[1]) end end },
+							})
+						end
+					end, opts)
+
+					vim.keymap.set('n', '<leader>mf', function()
+						local cargo_dir, bench_names = cargo_bench_targets()
+						if not cargo_dir or not bench_names or #bench_names == 0 then
+							vim.notify('No [[bench]] targets found', vim.log.levels.WARN)
+							return
+						end
+						local function run(name)
+							vim.cmd('belowright 15new')
+							vim.fn.termopen(
+								{ 'sh', '-c', 'cargo flamegraph --bench ' .. vim.fn.shellescape(name) .. ' && ' .. open_cmd .. ' flamegraph.svg' },
+								{ cwd = cargo_dir }
+							)
+							vim.cmd('startinsert')
+						end
+						local inferred = infer_bench_name(cargo_dir)
+						if inferred and vim.tbl_contains(bench_names, inferred) then
+							run(inferred)
+						elseif #bench_names == 1 then
+							run(bench_names[1])
+						else
+							require('fzf-lua').fzf_exec(bench_names, {
+								prompt = 'Flamegraph> ',
+								actions = { ['default'] = function(sel) if sel and sel[1] then run(sel[1]) end end },
+							})
+						end
+					end, opts)
+
+					vim.keymap.set('n', '<leader>ms', function()
+						local cargo_toml = vim.fn.findfile('Cargo.toml', '.;')
+						if cargo_toml == '' then
+							vim.notify('No Cargo.toml found', vim.log.levels.WARN)
+							return
+						end
+						local cargo_dir = vim.fn.fnamemodify(cargo_toml, ':p:h')
+						vim.notify('Running cargo semver-checks…', vim.log.levels.INFO)
+						local output = {}
+						vim.fn.jobstart({ 'cargo', 'semver-checks', '--baseline-rev', 'HEAD' }, {
+							cwd = cargo_dir,
+							stdout_buffered = true,
+							stderr_buffered = true,
+							on_stdout = function(_, data) if data then vim.list_extend(output, data) end end,
+							on_stderr = function(_, data) if data then vim.list_extend(output, data) end end,
+							on_exit = function(_, code)
+								vim.schedule(function()
+									local qflist = {}
+									local check_desc = nil
+									for _, line in ipairs(output) do
+										local desc = line:match('^%-%-%- failure [%w_]+: (.+) %-%-%-$')
+										if desc then
+											check_desc = desc
+										else
+											local item, path, lnum = line:match('^%s+%w+%s+([^,]+), previously in file ([^:]+):(%d+)$')
+											if item and path and lnum then
+												local rel = path:match('[/\\]target[/\\]semver%-checks[/\\][^/\\]+[/\\][0-9a-f]+[/\\](.+)$')
+												local filename = rel and (cargo_dir .. '/' .. rel) or path
+												table.insert(qflist, {
+													filename = filename,
+													lnum = tonumber(lnum),
+													col = 1,
+													text = item .. (check_desc and (' — ' .. check_desc) or ''),
+													type = 'E',
+												})
+											end
+										end
+									end
+									if code == 0 or #qflist == 0 then
+										vim.notify(
+											code == 0 and 'No semver violations' or 'cargo semver-checks failed (no locations parsed)',
+											vim.log.levels.INFO)
+										return
+									end
+									vim.fn.setqflist({}, 'r', { title = 'cargo semver-checks', items = qflist })
+									require('fzf-lua').quickfix()
+								end)
+							end,
+						})
 					end, opts)
 
 					-- None of this semantics tokens business.
 					-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
-					client.server_capabilities.semanticTokensProvider = nil
+					if client then
+						client.server_capabilities.semanticTokensProvider = nil
+					end
 
-					if client.server_capabilities.documentFormattingProvider then
+					if client and client.server_capabilities.documentFormattingProvider then
 						local bufnr = ev.buf
 						local bufname = vim.api.nvim_buf_get_name(bufnr)
 						local llvm_root = vim.fn.expand("~/llvm-project/")
@@ -996,8 +1198,8 @@ require("lazy").setup({
 				type = 'server',
 				port = '${port}',
 				executable = {
-					command = '/usr/lib/codelldb/adapter/codelldb',
-					args = { '--port', '${port}', '--liblldb', '/usr/lib/codelldb/lldb/lib/liblldb.so' },
+					command = codelldb_cmd,
+					args = { '--port', '${port}', '--liblldb', liblldb_path },
 				},
 			}
 
