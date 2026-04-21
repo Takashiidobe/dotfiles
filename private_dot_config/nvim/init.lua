@@ -141,8 +141,7 @@ vim.keymap.set('n', 'g*', 'g*zz', { silent = true })
 vim.keymap.set('n', '?', '?\\v')
 vim.keymap.set('n', '/', '/\\v')
 vim.keymap.set('c', '%s/', '%sm/')
--- open new file adjacent to current file
-vim.keymap.set('n', '<leader>o', ':e <C-R>=expand("%:p:h") . "/" <cr>')
+vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeOpen<cr>')
 -- no arrow keys --- force yourself to use the home row
 vim.keymap.set('n', '<up>', '<nop>')
 vim.keymap.set('n', '<down>', '<nop>')
@@ -673,6 +672,115 @@ require("lazy").setup({
 
 					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'), opts)
 					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'), opts)
+					vim.keymap.set('n', '<leader>mi', function()
+						local indent = vim.fn.getline('.'):match('^%s*')
+						vim.fn.append(vim.fn.line('.') - 1, indent .. '#[inline(never)]')
+					end, opts)
+					vim.keymap.set('n', '<leader>ma', function()
+						local fn_name = vim.fn.expand('<cword>')
+						local crate_name = nil
+						local cargo_toml = vim.fn.findfile('Cargo.toml', '.;')
+						local cargo_dir = cargo_toml ~= '' and vim.fn.fnamemodify(cargo_toml, ':p:h') or nil
+						local has_lib = false
+						if cargo_toml ~= '' then
+							for line in io.lines(cargo_toml) do
+								local name = line:match('^name%s*=%s*"([^"]+)"')
+								if name then crate_name = name:gsub('-', '_') end
+								if line:match('^%[lib%]') then has_lib = true end
+							end
+						end
+						-- also detect lib target by presence of src/lib.rs
+						if not has_lib and cargo_dir then
+							has_lib = vim.fn.filereadable(cargo_dir .. '/src/lib.rs') == 1
+						end
+
+						-- derive module path from file path relative to src/
+						local mod_prefix = crate_name or ''
+						local file = vim.fn.expand('%:p')
+						if cargo_dir then
+							local src_dir = cargo_dir .. '/src/'
+							if file:sub(1, #src_dir) == src_dir then
+								local rel = file:sub(#src_dir + 1):gsub('%.rs$', ''):gsub('/mod$', '')
+								if rel ~= 'lib' and rel ~= 'main' then
+									mod_prefix = mod_prefix .. '::' .. rel:gsub('/', '::')
+								end
+							end
+						end
+
+						local function run_asm(query, extra_args)
+							local output = {}
+							local buf = vim.api.nvim_create_buf(false, true)
+							local width = math.floor(vim.o.columns * 0.8)
+							local height = math.floor(vim.o.lines * 0.8)
+							vim.api.nvim_open_win(buf, true, {
+								relative = 'editor',
+								width = width,
+								height = height,
+								row = math.floor((vim.o.lines - height) / 2),
+								col = math.floor((vim.o.columns - width) / 2),
+								style = 'minimal',
+								border = 'rounded',
+								title = ' asm: ' .. query .. ' ',
+								title_pos = 'center',
+							})
+							vim.api.nvim_buf_set_lines(buf, 0, -1, false, { 'Running cargo asm...' })
+							vim.bo[buf].filetype = 'asm'
+							vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = buf, silent = true })
+							local cmd = vim.list_extend({ 'cargo', 'asm', '--no-color' }, extra_args)
+							vim.list_extend(cmd, { query })
+							vim.fn.jobstart(cmd, {
+								stdout_buffered = true,
+								stderr_buffered = true,
+								on_stdout = function(_, data) if data then vim.list_extend(output, data) end end,
+								on_stderr = function(_, data) if data then vim.list_extend(output, data) end end,
+								on_exit = function(_, code)
+									vim.schedule(function()
+										if not vim.api.nvim_buf_is_valid(buf) then return end
+										if code ~= 0 then
+											local targets = {}
+											for _, line in ipairs(output) do
+												local flag = line:match('^%s+(%-%-[%w]+[%s%w]*)')
+												if flag then table.insert(targets, vim.trim(flag)) end
+											end
+											if #targets > 0 then
+												vim.api.nvim_win_close(vim.api.nvim_get_current_win(), true)
+												vim.ui.select(targets, { prompt = 'Select cargo target:' }, function(choice)
+													if choice then
+														run_asm(query, vim.split(choice, '%s+'))
+													end
+												end)
+												return
+											end
+										end
+										vim.api.nvim_buf_set_lines(buf, 0, -1, false, output)
+										vim.bo[buf].modifiable = false
+									end)
+								end,
+							})
+						end
+
+						-- use documentSymbol to find the full symbol path at the cursor
+						local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1
+						local params = { textDocument = vim.lsp.util.make_text_document_params() }
+						vim.lsp.buf_request(0, 'textDocument/documentSymbol', params, function(err, symbols)
+							local query
+							if err or not symbols or #symbols == 0 then
+								query = mod_prefix .. '::' .. fn_name
+							else
+								local function find_path(syms, prefix)
+									for _, sym in ipairs(syms) do
+										local r = sym.range
+										if r and cursor_line >= r.start.line and cursor_line <= r['end'].line then
+											local child_path = sym.children and find_path(sym.children, prefix .. '::' .. sym.name)
+											return child_path or (prefix .. '::' .. sym.name)
+										end
+									end
+								end
+								query = find_path(symbols, mod_prefix) or (mod_prefix .. '::' .. fn_name)
+							end
+							run_asm(query, has_lib and { '--lib' } or {})
+						end)
+					end, opts)
 
 					-- None of this semantics tokens business.
 					-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
