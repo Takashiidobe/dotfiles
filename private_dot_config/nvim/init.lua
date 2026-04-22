@@ -12,11 +12,11 @@ local open_cmd = is_mac and 'open' or 'xdg-open'
 local clipboard_copy = is_mac and 'pbcopy' or 'wl-copy'
 local clipboard_paste = is_mac and 'pbpaste' or 'wl-paste'
 local codelldb_cmd = is_mac
-	and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or '/opt/homebrew/bin/codelldb')
-	or '/usr/lib/codelldb/adapter/codelldb'
+		and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or '/opt/homebrew/bin/codelldb')
+		or '/usr/lib/codelldb/adapter/codelldb'
 local liblldb_path = is_mac
-	and '/opt/homebrew/lib/liblldb.dylib'
-	or '/usr/lib/codelldb/lldb/lib/liblldb.so'
+		and '/opt/homebrew/lib/liblldb.dylib'
+		or '/usr/lib/codelldb/lldb/lib/liblldb.so'
 
 -- disable netrw
 vim.g.loaded_netrw = 1
@@ -139,7 +139,7 @@ vim.keymap.set('n', 'g*', 'g*zz', { silent = true })
 vim.keymap.set('n', '?', '?\\v')
 vim.keymap.set('n', '/', '/\\v')
 vim.keymap.set('c', '%s/', '%sm/')
-vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeOpen<cr>')
+vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeToggle<cr>')
 -- no arrow keys --- force yourself to use the home row
 vim.keymap.set('n', '<up>', '<nop>')
 vim.keymap.set('n', '<down>', '<nop>')
@@ -223,23 +223,23 @@ vim.api.nvim_create_autocmd('Filetype', {
 -------------------------------------------------------------------------------
 vim.api.nvim_create_user_command('CheckDeps', function()
 	local deps = {
-		{ group = 'Core',   name = 'git',                        cmd = 'git' },
-		{ group = 'Core',   name = 'cc (C compiler)',            cmd = 'cc' },
-		{ group = 'Core',   name = 'fzf',                        cmd = 'fzf' },
-		{ group = 'Core',   name = 'ripgrep (rg)',               cmd = 'rg' },
-		{ group = 'Core',   name = 'fd',                         cmd = 'fd' },
-		{ group = 'Core',   name = 'proximity-sort',             cmd = 'proximity-sort' },
-		{ group = 'Core',   name = clipboard_copy,               cmd = clipboard_copy },
-		{ group = 'Core',   name = clipboard_paste,              cmd = clipboard_paste },
-		{ group = 'AI',     name = 'claude',                     cmd = 'claude' },
-		{ group = 'AI',     name = 'codex',                      cmd = 'codex' },
-		{ group = 'Rust',   name = 'rust-analyzer',              cmd = 'rust-analyzer' },
-		{ group = 'Rust',   name = 'cargo',                      cmd = 'cargo' },
-		{ group = 'Rust',   name = 'cargo-nextest',              cmd = 'cargo-nextest' },
-		{ group = 'Rust',   name = 'cargo-show-asm',             cmd = 'cargo-show-asm' },
-		{ group = 'Rust',   name = 'cargo-flamegraph',           cmd = 'cargo-flamegraph' },
-		{ group = 'Rust',   name = 'cargo-semver-checks',        cmd = 'cargo-semver-checks' },
-		{ group = 'Rust',   name = 'codelldb',                   cmd = codelldb_cmd, path = true },
+		{ group = 'Core', name = 'git',                 cmd = 'git' },
+		{ group = 'Core', name = 'cc (C compiler)',     cmd = 'cc' },
+		{ group = 'Core', name = 'fzf',                 cmd = 'fzf' },
+		{ group = 'Core', name = 'ripgrep (rg)',        cmd = 'rg' },
+		{ group = 'Core', name = 'fd',                  cmd = 'fd' },
+		{ group = 'Core', name = 'proximity-sort',      cmd = 'proximity-sort' },
+		{ group = 'Core', name = clipboard_copy,        cmd = clipboard_copy },
+		{ group = 'Core', name = clipboard_paste,       cmd = clipboard_paste },
+		{ group = 'AI',   name = 'claude',              cmd = 'claude' },
+		{ group = 'AI',   name = 'codex',               cmd = 'codex' },
+		{ group = 'Rust', name = 'rust-analyzer',       cmd = 'rust-analyzer' },
+		{ group = 'Rust', name = 'cargo',               cmd = 'cargo' },
+		{ group = 'Rust', name = 'cargo-nextest',       cmd = 'cargo-nextest' },
+		{ group = 'Rust', name = 'cargo-show-asm',      cmd = 'cargo-show-asm' },
+		{ group = 'Rust', name = 'cargo-flamegraph',    cmd = 'cargo-flamegraph' },
+		{ group = 'Rust', name = 'cargo-semver-checks', cmd = 'cargo-semver-checks' },
+		{ group = 'Rust', name = 'codelldb',            cmd = codelldb_cmd,         path = true },
 		not is_mac and { group = 'Rust', name = 'perf (flamegraph)', cmd = 'perf' } or nil,
 		{ group = 'LSP',    name = 'node (for TS/bash LSPs)',    cmd = 'node' },
 		{ group = 'LSP',    name = 'clangd',                     cmd = 'clangd' },
@@ -272,8 +272,8 @@ vim.api.nvim_create_user_command('CheckDeps', function()
 			group = dep.group
 		end
 		local ok = dep.path
-			and vim.uv.fs_stat(dep.cmd) ~= nil
-			or vim.fn.executable(dep.cmd) == 1
+				and vim.uv.fs_stat(dep.cmd) ~= nil
+				or vim.fn.executable(dep.cmd) == 1
 		table.insert(lines, string.format('  %s  %s', ok and '✓' or '✗', dep.name))
 		::continue::
 	end
@@ -705,7 +705,9 @@ require("lazy").setup({
 			-- <Tab> lazily fetches and toggles children. <CR> jumps to definition, o to call site.
 			local function call_tree(direction)
 				local client = vim.lsp.get_clients({ bufnr = 0 })[1]
-				if not client then vim.notify('No LSP client attached', vim.log.levels.WARN); return end
+				if not client then
+					vim.notify('No LSP client attached', vim.log.levels.WARN); return
+				end
 				local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
 				local src_buf = vim.api.nvim_get_current_buf()
 				local method = direction == 'incoming' and 'callHierarchy/incomingCalls' or 'callHierarchy/outgoingCalls'
@@ -721,210 +723,251 @@ require("lazy").setup({
 					return i.name
 				end
 
-				client:request('textDocument/prepareCallHierarchy', params, function(_, items)
-					if not items or #items == 0 then
-						vim.notify('No call hierarchy item at cursor', vim.log.levels.WARN)
-						return
-					end
+				local visible = {}
 
-					-- flat ordered list of currently visible nodes
-					local visible = {}
-					local buf, win
+				local buf = vim.api.nvim_create_buf(false, true)
+				local width = math.floor(vim.o.columns * 0.65)
+				local height = math.floor(vim.o.lines * 0.6)
+				local win = vim.api.nvim_open_win(buf, true, {
+					relative = 'editor',
+					width = width,
+					height = height,
+					row = math.floor((vim.o.lines - height) / 2),
+					col = math.floor((vim.o.columns - width) / 2),
+					style = 'minimal',
+					border = 'rounded',
+					title = direction == 'incoming' and ' Incoming Calls ' or ' Outgoing Calls ',
+					title_pos = 'center',
+				})
+				vim.bo[buf].modifiable = false
 
-					local ns = vim.api.nvim_create_namespace('call_tree')
-					local function render()
-						if not vim.api.nvim_buf_is_valid(buf) then return end
-						local lines, hls = {}, {}
-						for row, node in ipairs(visible) do
-							local glyph = node.loading and '⟳'
+				local ns = vim.api.nvim_create_namespace('call_tree')
+				local function render()
+					if not vim.api.nvim_buf_is_valid(buf) then return end
+					local lines, hls = {}, {}
+					for row, node in ipairs(visible) do
+						local glyph = node.loading and '⟳'
 								or (node.has_children and (node.expanded and '▼' or '▶') or ' ')
-							local fname = vim.fn.fnamemodify(vim.uri_to_fname(node.item.uri), ':~:.')
-							local lnum = node.item.selectionRange.start.line + 1
-							local qname = qualified_name(node.item)
-							-- byte offset where the name starts (prefix + glyph bytes + 1 space)
-							local name_start = #node.line_prefix + #glyph + 1
-							local name_hl = node.has_children and 'Function' or 'Comment'
-							local glyph_hl = node.loading and 'DiagnosticWarn' or name_hl
-							table.insert(lines, string.format('%s%s %s  %s:%d',
-								node.line_prefix, glyph, qname, fname, lnum))
-							local r = row - 1
-							-- tree connector glyphs: dim
-							table.insert(hls, { r, 'NonText',   0,                  #node.line_prefix })
-							-- glyph + space
-							table.insert(hls, { r, glyph_hl,   #node.line_prefix,  name_start })
-							-- qualified name
-							table.insert(hls, { r, name_hl,          name_start,                name_start + #qname })
-							-- :: separator: red
-							local dc = qname:find('::')
-							if dc then
-								table.insert(hls, { r, 'DiagnosticError', name_start + dc - 1, name_start + dc + 1 })
-							end
-							-- filepath: dim
-							table.insert(hls, { r, 'Comment', name_start + #qname + 2, -1 })
+						local fname = vim.fn.fnamemodify(vim.uri_to_fname(node.item.uri), ':~:.')
+						local lnum = node.item.selectionRange.start.line + 1
+						local qname = qualified_name(node.item)
+						local name_start = #node.line_prefix + #glyph + 1
+						local name_hl = node.has_children and 'Function' or 'Comment'
+						local glyph_hl = node.loading and 'DiagnosticWarn' or name_hl
+						table.insert(lines, string.format('%s%s %s  %s:%d',
+							node.line_prefix, glyph, qname, fname, lnum))
+						local r = row - 1
+						table.insert(hls, { r, 'NonText', 0, #node.line_prefix })
+						table.insert(hls, { r, glyph_hl, #node.line_prefix, name_start })
+						table.insert(hls, { r, name_hl, name_start, name_start + #qname })
+						local dc = qname:find('::')
+						if dc then
+							table.insert(hls, { r, 'DiagnosticError', name_start + dc - 1, name_start + dc + 1 })
 						end
-						vim.bo[buf].modifiable = true
-						vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-						vim.bo[buf].modifiable = false
-						vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
-						for _, h in ipairs(hls) do
-							vim.api.nvim_buf_add_highlight(buf, ns, h[2], h[1], h[3], h[4])
-						end
+						table.insert(hls, { r, 'Comment', name_start + #qname + 2, -1 })
 					end
-
-					-- base_prefix: inherited prefix string from parent (tracks │ continuations)
-					-- is_last: whether this node is the last child of its parent
-					local function make_node(item, call_site, depth, is_last, base_prefix, ancestor_keys)
-						local connector = depth == 0 and '' or (is_last and '└── ' or '├── ')
-						local continuation = is_last and '    ' or '│   '
-						return {
-							item = item, call_site = call_site, depth = depth,
-							loaded = false, expanded = false, children = {},
-							ancestor_keys = ancestor_keys or {},
-							line_prefix = base_prefix .. connector,
-							child_base_prefix = depth == 0 and '' or (base_prefix .. continuation),
-						}
+					vim.bo[buf].modifiable = true
+					vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+					vim.bo[buf].modifiable = false
+					vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+					for _, h in ipairs(hls) do
+						vim.api.nvim_buf_add_highlight(buf, ns, h[2], h[1], h[3], h[4])
 					end
+				end
 
-					local function find_idx(node)
-						for i, v in ipairs(visible) do if v == node then return i end end
+				local function make_node(item, call_site, depth, is_last, base_prefix, ancestor_keys)
+					local connector = depth == 0 and '' or (is_last and '└── ' or '├── ')
+					local continuation = is_last and '    ' or '│   '
+					return {
+						item = item,
+						call_site = call_site,
+						depth = depth,
+						loaded = false,
+						expanded = false,
+						children = {},
+						ancestor_keys = ancestor_keys or {},
+						line_prefix = base_prefix .. connector,
+						child_base_prefix = depth == 0 and '' or (base_prefix .. continuation),
+					}
+				end
+
+				local function find_idx(node)
+					for i, v in ipairs(visible) do if v == node then return i end end
+				end
+
+				local function collapse(idx)
+					local node = visible[idx]
+					node.expanded = false
+					local depth = node.depth
+					while visible[idx + 1] and visible[idx + 1].depth > depth do
+						table.remove(visible, idx + 1)
 					end
+					render()
+				end
 
-					local function collapse(idx)
-						local node = visible[idx]
-						node.expanded = false
-						local depth = node.depth
-						while visible[idx + 1] and visible[idx + 1].depth > depth do
-							table.remove(visible, idx + 1)
-						end
-						render()
-					end
-
-					-- Background-check whether a node has any non-ignored children,
-					-- then re-render so the ▶ glyph appears only when warranted.
-					local function prefetch_expandable(node)
-						local node_key = node.item.uri .. ':' .. node.item.selectionRange.start.line
-						client:request(method, { item = node.item }, function(_, calls)
-							vim.schedule(function()
-								local has = false
-								if calls then
-									for _, call in ipairs(calls) do
-										local child_item = direction == 'incoming' and call.from or call.to
-										local ck = child_item.uri .. ':' .. child_item.selectionRange.start.line
-										if not call_tree_ignored(child_item.uri)
-										   and not node.ancestor_keys[ck]
-										   and ck ~= node_key then
-											has = true; break
-										end
-									end
-								end
-								node.has_children = has
-								render()
-							end)
-						end, src_buf)
-					end
-
-					local function expand(idx)
-						local node = visible[idx]
-						if node.loaded then
-							node.expanded = true
-							for i, child in ipairs(node.children) do
-								table.insert(visible, idx + i, child)
-							end
-							render()
-							return
-						end
-						-- show spinner immediately so the user sees feedback before LSP responds
-						node.loading = true
-						render()
-						local node_key = node.item.uri .. ':' .. node.item.selectionRange.start.line
-						local child_ancestors = vim.tbl_extend('force', node.ancestor_keys, { [node_key] = true })
-						client:request(method, { item = node.item }, function(_, calls)
-							local filtered, seen = {}, {}
+				local function prefetch_expandable(node)
+					local node_key = node.item.uri .. ':' .. node.item.selectionRange.start.line
+					client:request(method, { item = node.item }, function(_, calls)
+						vim.schedule(function()
+							local has = false
 							if calls then
 								for _, call in ipairs(calls) do
 									local child_item = direction == 'incoming' and call.from or call.to
-									local key = child_item.uri .. ':' .. child_item.selectionRange.start.line
-									-- skip ignored paths, duplicates within this response, and ancestors (cycle guard)
+									local ck = child_item.uri .. ':' .. child_item.selectionRange.start.line
 									if not call_tree_ignored(child_item.uri)
-									   and not seen[key]
-									   and not child_ancestors[key] then
-										seen[key] = true
-										local site_uri = direction == 'incoming' and child_item.uri or node.item.uri
-										local site_range = call.fromRanges and call.fromRanges[1]
-										table.insert(filtered, {
-											item = child_item,
-											call_site = site_range and { uri = site_uri, range = site_range } or nil,
-										})
+											and not node.ancestor_keys[ck]
+											and ck ~= node_key then
+										has = true; break
 									end
 								end
 							end
-							vim.schedule(function()
-								node.loading = false
-								node.loaded = true
-								for i, entry in ipairs(filtered) do
-									local child = make_node(entry.item, entry.call_site,
-										node.depth + 1, i == #filtered, node.child_base_prefix, child_ancestors)
-									table.insert(node.children, child)
-									prefetch_expandable(child)
-								end
-								node.expanded = true
-								local i = find_idx(node)
-								if i then
-									for j, child in ipairs(node.children) do
-										table.insert(visible, i + j, child)
-									end
-									render()
-								end
-							end)
-						end, src_buf)
-					end
+							node.has_children = has
+							render()
+						end)
+					end, src_buf)
+				end
 
-					vim.schedule(function()
-						buf = vim.api.nvim_create_buf(false, true)
-						local width = math.floor(vim.o.columns * 0.65)
-						local height = math.floor(vim.o.lines * 0.6)
-						win = vim.api.nvim_open_win(buf, true, {
-							relative = 'editor', width = width, height = height,
-							row = math.floor((vim.o.lines - height) / 2),
-							col = math.floor((vim.o.columns - width) / 2),
-							style = 'minimal', border = 'rounded',
-							title = direction == 'incoming' and ' Incoming Calls ' or ' Outgoing Calls ',
-							title_pos = 'center',
-						})
-						vim.bo[buf].modifiable = false
-
-						local function jump(loc)
-							if not loc then return end
-							vim.api.nvim_win_close(win, true)
-							vim.lsp.util.show_document({ uri = loc.uri, range = loc.range }, client.offset_encoding)
+				local function expand(idx, _retry)
+					local node = visible[idx]
+					if node.loaded then
+						node.expanded = true
+						local i = find_idx(node)
+						for j, child in ipairs(node.children) do
+							table.insert(visible, i + j, child)
 						end
-
-						vim.keymap.set('n', '<Tab>', function()
-							local lnum = vim.api.nvim_win_get_cursor(0)[1]
-							local node = visible[lnum]
-							if not node then return end
-							if node.expanded then collapse(lnum) else expand(lnum) end
-						end, { buffer = buf, silent = true })
-						vim.keymap.set('n', '<CR>', function()
-							local node = visible[vim.api.nvim_win_get_cursor(0)[1]]
-							if node then jump({ uri = node.item.uri, range = node.item.selectionRange }) end
-						end, { buffer = buf, silent = true })
-						vim.keymap.set('n', 'o', function()
-							local node = visible[vim.api.nvim_win_get_cursor(0)[1]]
-							if node then jump(node.call_site) end
-						end, { buffer = buf, silent = true })
-						vim.keymap.set('n', 'q', function() vim.api.nvim_win_close(win, true) end,
-							{ buffer = buf, silent = true })
-						vim.keymap.set('n', '<Esc>', function() vim.api.nvim_win_close(win, true) end,
-							{ buffer = buf, silent = true })
-
-						local root = make_node(items[1], nil, 0, true, '')
-						root.has_children = true
-						table.insert(visible, root)
 						render()
-						expand(1)
-					end)
-				end, src_buf)
+						return
+					end
+					node.loading = true
+					render()
+					local node_key = node.item.uri .. ':' .. node.item.selectionRange.start.line
+					local child_ancestors = vim.tbl_extend('force', node.ancestor_keys, { [node_key] = true })
+					client:request(method, { item = node.item }, function(_, calls)
+						local filtered, seen = {}, {}
+						if calls then
+							for _, call in ipairs(calls) do
+								local child_item = direction == 'incoming' and call.from or call.to
+								local key = child_item.uri .. ':' .. child_item.selectionRange.start.line
+								if not call_tree_ignored(child_item.uri)
+										and not seen[key]
+										and not child_ancestors[key] then
+									seen[key] = true
+									local site_uri = direction == 'incoming' and child_item.uri or node.item.uri
+									local site_range = call.fromRanges and call.fromRanges[1]
+									table.insert(filtered, {
+										item = child_item,
+										call_site = site_range and { uri = site_uri, range = site_range } or nil,
+									})
+								end
+							end
+						end
+						vim.schedule(function()
+							node.loading = false
+							if #filtered == 0 and node.has_children and (_retry or 0) < 20 then
+								vim.defer_fn(function()
+									if not vim.api.nvim_buf_is_valid(buf) then return end
+									local i = find_idx(node)
+									if i then expand(i, (_retry or 0) + 1) end
+								end, 500)
+								return
+							end
+							node.loaded = true
+							for i, entry in ipairs(filtered) do
+								local child = make_node(entry.item, entry.call_site,
+									node.depth + 1, i == #filtered, node.child_base_prefix, child_ancestors)
+								table.insert(node.children, child)
+								prefetch_expandable(child)
+							end
+							node.expanded = true
+							local i = find_idx(node)
+							if i then
+								for j, child in ipairs(node.children) do
+									table.insert(visible, i + j, child)
+								end
+								render()
+							end
+						end)
+					end, src_buf)
+				end
+
+				local function jump(loc)
+					if not loc then return end
+					vim.api.nvim_win_close(win, true)
+					vim.lsp.util.show_document({ uri = loc.uri, range = loc.range }, client.offset_encoding)
+				end
+
+				vim.keymap.set('n', '<Tab>', function()
+					local lnum = vim.api.nvim_win_get_cursor(0)[1]
+					local node = visible[lnum]
+					if not node then return end
+					if node.expanded then collapse(lnum) else expand(lnum) end
+				end, { buffer = buf, silent = true })
+				vim.keymap.set('n', 'E', function()
+					local to_expand = {}
+					for _, node in ipairs(visible) do
+						if node.has_children and not node.expanded and not node.loading then
+							table.insert(to_expand, node)
+						end
+					end
+					for _, node in ipairs(to_expand) do
+						local i = find_idx(node)
+						if i then expand(i) end
+					end
+				end, { buffer = buf, silent = true })
+				vim.keymap.set('n', 'c', function()
+					local lnum = vim.api.nvim_win_get_cursor(0)[1]
+					local node = visible[lnum]
+					if node and node.expanded then collapse(lnum) end
+				end, { buffer = buf, silent = true })
+				vim.keymap.set('n', 'C', function()
+					for i = #visible, 1, -1 do
+						if visible[i].expanded then collapse(i) end
+					end
+				end, { buffer = buf, silent = true })
+				vim.keymap.set('n', '<CR>', function()
+					local node = visible[vim.api.nvim_win_get_cursor(0)[1]]
+					if node then jump({ uri = node.item.uri, range = node.item.selectionRange }) end
+				end, { buffer = buf, silent = true })
+				vim.keymap.set('n', 'o', function()
+					local node = visible[vim.api.nvim_win_get_cursor(0)[1]]
+					if node then jump(node.call_site) end
+				end, { buffer = buf, silent = true })
+				vim.keymap.set('n', 'q', function() vim.api.nvim_win_close(win, true) end,
+					{ buffer = buf, silent = true })
+				vim.keymap.set('n', '<Esc>', function() vim.api.nvim_win_close(win, true) end,
+					{ buffer = buf, silent = true })
+
+				local max_retries = 60
+				local attempt = 0
+				local function try_prepare()
+					if not vim.api.nvim_win_is_valid(win) then return end
+					attempt = attempt + 1
+					local dots = string.rep('.', attempt % 4)
+					vim.bo[buf].modifiable = true
+					vim.api.nvim_buf_set_lines(buf, 0, -1, false, { '  Waiting for LSP' .. dots })
+					vim.bo[buf].modifiable = false
+					client:request('textDocument/prepareCallHierarchy', params, function(_, items)
+						vim.schedule(function()
+							if not vim.api.nvim_win_is_valid(win) then return end
+							if not items or #items == 0 then
+								if attempt >= max_retries then
+									vim.bo[buf].modifiable = true
+									vim.api.nvim_buf_set_lines(buf, 0, -1, false, { '  No call hierarchy item at cursor' })
+									vim.bo[buf].modifiable = false
+								else
+									vim.defer_fn(try_prepare, 500)
+								end
+								return
+							end
+							local root = make_node(items[1], nil, 0, true, '')
+							root.has_children = true
+							table.insert(visible, root)
+							render()
+							expand(1)
+						end)
+					end, src_buf)
+				end
+				try_prepare()
 			end
 
 			-- Use LspAttach autocommand to only map the following keys
@@ -1156,7 +1199,8 @@ require("lazy").setup({
 						local function run(name)
 							vim.cmd('belowright 15new')
 							vim.fn.termopen(
-								{ 'sh', '-c', 'cargo flamegraph --bench ' .. vim.fn.shellescape(name) .. ' && ' .. open_cmd .. ' flamegraph.svg' },
+								{ 'sh', '-c', 'cargo flamegraph --bench ' ..
+								vim.fn.shellescape(name) .. ' && ' .. open_cmd .. ' flamegraph.svg' },
 								{ cwd = cargo_dir }
 							)
 							vim.cmd('startinsert')
