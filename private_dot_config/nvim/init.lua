@@ -693,10 +693,12 @@ require("lazy").setup({
 				end
 			end
 
-			local call_tree_ignore = { '%.rustup/', '%.cargo/registry/', 'go/pkg/mod/', 'GOROOT' }
+			local call_tree_ignore = { '.rustup/', '.cargo/registry/', 'go/pkg/mod/', 'GOROOT', '/usr/include/' }
 			local function call_tree_ignored(uri)
+				local ok, fname = pcall(vim.uri_to_fname, uri)
 				for _, pat in ipairs(call_tree_ignore) do
-					if uri:find(pat) then return true end
+					if uri:find(pat, 1, true) then return true end
+					if ok and fname:find(pat, 1, true) then return true end
 				end
 				return false
 			end
@@ -1023,7 +1025,7 @@ require("lazy").setup({
 					end, opts)
 					local lsp_calls_opts = {
 						winopts = { preview = { hidden = false } },
-						file_ignore_patterns = { "%.rustup/", "%.cargo/registry/", "go/pkg/mod/", "GOROOT" },
+						file_ignore_patterns = { "%.rustup/", "%.cargo/registry/", "go/pkg/mod/", "GOROOT", "%/usr/include/c++/%" },
 					}
 					vim.keymap.set('n', '<leader>ci', function() call_tree('incoming') end, opts)
 					vim.keymap.set('n', '<leader>co', function() call_tree('outgoing') end, opts)
