@@ -1,6 +1,10 @@
 -- always set leader first!
-vim.keymap.set("n", "<Space>", "<Nop>", { silent = true })
+vim.keymap.set("n", "<Space>", "<Nop>", { silent = true, desc = 'Disable bare leader key' })
 vim.g.mapleader = " "
+
+local function keymap_opts(desc, opts)
+	return vim.tbl_extend('force', opts or {}, { desc = desc })
+end
 
 -------------------------------------------------------------------------------
 --
@@ -103,63 +107,63 @@ vim.opt.clipboard = "unnamedplus"
 --
 -------------------------------------------------------------------------------
 -- quick-save
-vim.keymap.set('n', '<leader>w', '<cmd>w<cr>')
+vim.keymap.set('n', '<leader>w', '<cmd>w<cr>', { desc = 'Write current buffer' })
 -- make missing : less annoying
-vim.keymap.set('n', ';', ':')
+vim.keymap.set('n', ';', ':', { desc = 'Enter command-line mode' })
 -- go back to previous buffer
-vim.keymap.set('n', 'gb', '<C-O>')
+vim.keymap.set('n', 'gb', '<C-O>', { desc = 'Jump back in jumplist' })
 -- go forward to next buffer
-vim.keymap.set('n', 'gn', '<C-I>')
+vim.keymap.set('n', 'gn', '<C-I>', { desc = 'Jump forward in jumplist' })
 -- Ctrl+j and Ctrl+k as Esc
 -- https://github.com/neovim/neovim/issues/5916
-vim.keymap.set({ 'n', 'i', 'v', 's', 'x', 'c', 'o', 'l', 't' }, '<C-j>', '<Esc>')
-vim.keymap.set({ 'n', 'i', 'v', 's', 'x', 'c', 'o', 'l', 't' }, '<C-k>', '<Esc>')
+vim.keymap.set({ 'n', 'i', 'v', 's', 'x', 'c', 'o', 'l', 't' }, '<C-j>', '<Esc>', { desc = 'Escape current mode' })
+vim.keymap.set({ 'n', 'i', 'v', 's', 'x', 'c', 'o', 'l', 't' }, '<C-k>', '<Esc>', { desc = 'Escape current mode' })
 -- Ctrl+h to stop searching
-vim.keymap.set('v', '<C-h>', '<cmd>nohlsearch<cr>')
-vim.keymap.set('n', '<C-h>', '<cmd>nohlsearch<cr>')
+vim.keymap.set('v', '<C-h>', '<cmd>nohlsearch<cr>', { desc = 'Clear search highlight' })
+vim.keymap.set('n', '<C-h>', '<cmd>nohlsearch<cr>', { desc = 'Clear search highlight' })
 -- Jump to start and end of line using the home row keys
-vim.keymap.set('', 'H', '^')
-vim.keymap.set('', 'L', '$')
+vim.keymap.set('', 'H', '^', { desc = 'Jump to first non-blank character' })
+vim.keymap.set('', 'L', '$', { desc = 'Jump to end of line' })
 -- Neat X clipboard integration
 -- <leader>p will paste clipboard into buffer
 -- <leader>c will copy entire buffer into clipboard
-vim.keymap.set('n', '<leader>p', function() vim.cmd('read !' .. clipboard_paste) end)
-vim.keymap.set('n', '<leader>C', function() vim.cmd('w !' .. clipboard_copy) end)
+vim.keymap.set('n', '<leader>p', function() vim.cmd('read !' .. clipboard_paste) end, { desc = 'Paste system clipboard below cursor' })
+vim.keymap.set('n', '<leader>C', function() vim.cmd('w !' .. clipboard_copy) end, { desc = 'Copy buffer to system clipboard' })
 -- <leader><leader> toggles between buffers
-vim.keymap.set('n', '<leader><leader>', '<c-^>')
+vim.keymap.set('n', '<leader><leader>', '<c-^>', { desc = 'Switch to alternate buffer' })
 -- <leader>, shows/hides hidden characters
-vim.keymap.set('n', '<leader>,', ':set invlist<cr>')
+vim.keymap.set('n', '<leader>,', ':set invlist<cr>', { desc = 'Toggle visible whitespace' })
 -- always center search results
-vim.keymap.set('n', 'n', 'nzz', { silent = true })
-vim.keymap.set('n', 'N', 'Nzz', { silent = true })
-vim.keymap.set('n', '*', '*zz', { silent = true })
-vim.keymap.set('n', '#', '#zz', { silent = true })
-vim.keymap.set('n', 'g*', 'g*zz', { silent = true })
+vim.keymap.set('n', 'n', 'nzz', { silent = true, desc = 'Next search result and center' })
+vim.keymap.set('n', 'N', 'Nzz', { silent = true, desc = 'Previous search result and center' })
+vim.keymap.set('n', '*', '*zz', { silent = true, desc = 'Search word under cursor forward and center' })
+vim.keymap.set('n', '#', '#zz', { silent = true, desc = 'Search word under cursor backward and center' })
+vim.keymap.set('n', 'g*', 'g*zz', { silent = true, desc = 'Search partial word under cursor and center' })
 -- "very magic" (less escaping needed) regexes by default
-vim.keymap.set('n', '?', '?\\v')
-vim.keymap.set('n', '/', '/\\v')
-vim.keymap.set('c', '%s/', '%sm/')
-vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeToggle<cr>')
+vim.keymap.set('n', '?', '?\\v', { desc = 'Search backward with very magic regex' })
+vim.keymap.set('n', '/', '/\\v', { desc = 'Search forward with very magic regex' })
+vim.keymap.set('c', '%s/', '%sm/', { desc = 'Use magic mode for substitute commands' })
+vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeToggle<cr>', { desc = 'Toggle file tree' })
 -- no arrow keys --- force yourself to use the home row
-vim.keymap.set('n', '<up>', '<nop>')
-vim.keymap.set('n', '<down>', '<nop>')
-vim.keymap.set('i', '<up>', '<nop>')
-vim.keymap.set('i', '<down>', '<nop>')
-vim.keymap.set('i', '<left>', '<nop>')
-vim.keymap.set('i', '<right>', '<nop>')
+vim.keymap.set('n', '<up>', '<nop>', { desc = 'Disable up arrow' })
+vim.keymap.set('n', '<down>', '<nop>', { desc = 'Disable down arrow' })
+vim.keymap.set('i', '<up>', '<nop>', { desc = 'Disable up arrow' })
+vim.keymap.set('i', '<down>', '<nop>', { desc = 'Disable down arrow' })
+vim.keymap.set('i', '<left>', '<nop>', { desc = 'Disable left arrow' })
+vim.keymap.set('i', '<right>', '<nop>', { desc = 'Disable right arrow' })
 -- let the left and right arrows be useful: they can switch buffers
-vim.keymap.set('n', '<left>', ':bp<cr>')
-vim.keymap.set('n', '<right>', ':bn<cr>')
+vim.keymap.set('n', '<left>', ':bp<cr>', { desc = 'Previous buffer' })
+vim.keymap.set('n', '<right>', ':bn<cr>', { desc = 'Next buffer' })
 -- make j and k move by visual line, not actual line, when text is soft-wrapped
-vim.keymap.set('n', 'j', 'gj')
-vim.keymap.set('n', 'k', 'gk')
+vim.keymap.set('n', 'j', 'gj', { desc = 'Move down by display line' })
+vim.keymap.set('n', 'k', 'gk', { desc = 'Move up by display line' })
 -- handy keymap for replacing up to next _ (like in variable names)
-vim.keymap.set('n', '<leader>_', 'ct_')
+vim.keymap.set('n', '<leader>_', 'ct_', { desc = 'Change text until next underscore' })
 -- F1 is pretty close to Esc, so you probably meant Esc
-vim.keymap.set('', '<F1>', '<Esc>')
-vim.keymap.set('i', '<F1>', '<Esc>')
+vim.keymap.set('', '<F1>', '<Esc>', { desc = 'Escape current mode' })
+vim.keymap.set('i', '<F1>', '<Esc>', { desc = 'Escape insert mode' })
 -- Clear highlights with Esc
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<cr>')
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<cr>', { desc = 'Clear search highlight' })
 
 -------------------------------------------------------------------------------
 --
@@ -294,8 +298,8 @@ vim.api.nvim_create_user_command('CheckDeps', function()
 	})
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 	vim.bo[buf].modifiable = false
-	vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = buf, silent = true })
-	vim.keymap.set('n', '<Esc>', '<cmd>close<cr>', { buffer = buf, silent = true })
+	vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = buf, silent = true, desc = 'Close dependency check window' })
+	vim.keymap.set('n', '<Esc>', '<cmd>close<cr>', { buffer = buf, silent = true, desc = 'Close dependency check window' })
 end, {})
 
 -------------------------------------------------------------------------------
@@ -416,9 +420,9 @@ require("lazy").setup({
 	{
 		'tpope/vim-fugitive',
 		config = function()
-			vim.keymap.set('n', '<leader>GG', '<cmd>Git<cr>')
-			vim.keymap.set('n', '<leader>B', '<cmd>Git blame<cr>')
-			vim.keymap.set({ 'n', 'v' }, '<leader>GB', '<cmd>GBrowse<cr>')
+			vim.keymap.set('n', '<leader>GG', '<cmd>Git<cr>', { desc = 'Git: open fugitive status' })
+			vim.keymap.set('n', '<leader>B', '<cmd>Git blame<cr>', { desc = 'Git: blame current file' })
+			vim.keymap.set({ 'n', 'v' }, '<leader>GB', '<cmd>GBrowse<cr>', { desc = 'GitHub: browse current file or selection' })
 		end
 	},
 	-- support for github
@@ -429,8 +433,8 @@ require("lazy").setup({
 	{
 		url = "https://codeberg.org/andyg/leap.nvim",
 		config = function()
-			vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap)')
-			vim.keymap.set('n', 'S', '<Plug>(leap-from-window)')
+			vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap)', { desc = 'Leap: jump in current window' })
+			vim.keymap.set('n', 'S', '<Plug>(leap-from-window)', { desc = 'Leap: jump from another window' })
 		end
 	},
 	-- better %
@@ -463,12 +467,12 @@ require("lazy").setup({
 					:set formatoptions-=tc linebreak tw=0 cc=0 wrap wm=20 noautoindent nocindent nosmartindent indentkeys=
 				]])
 				if not prose_keys_set then
-					vim.keymap.set('n', '0', 'g0')
-					vim.keymap.set('n', '$', 'g$')
-					vim.keymap.set('n', '^', 'g^')
+					vim.keymap.set('n', '0', 'g0', { desc = 'Prose mode: start of display line' })
+					vim.keymap.set('n', '$', 'g$', { desc = 'Prose mode: end of display line' })
+					vim.keymap.set('n', '^', 'g^', { desc = 'Prose mode: first non-blank display character' })
 					prose_keys_set = true
 				end
-			end)
+			end, { desc = 'Toggle centered prose mode' })
 		end
 	},
 	-- auto-cd to root of git project
@@ -531,7 +535,7 @@ require("lazy").setup({
 					["--layout"]   = "default",
 				}
 				require 'fzf-lua'.files(opts)
-			end)
+			end, { desc = 'Find files near current file' })
 			-- use fzf to search buffers with <leader>;
 			vim.keymap.set('n', '<leader>;', function()
 				require 'fzf-lua'.buffers({
@@ -545,11 +549,11 @@ require("lazy").setup({
 					},
 					header = false,
 				})
-			end)
+			end, { desc = 'Find open buffers' })
 			-- use fzf to search with <leader>s
 			vim.keymap.set('n', '<leader>s', function()
 				require 'fzf-lua'.lsp_live_workspace_symbols()
-			end)
+			end, { desc = 'LSP: search workspace symbols' })
 			-- use fzf to ripgrep project with <leader>g
 			vim.keymap.set('n', '<leader>g', function()
 				require 'fzf-lua'.grep_project({
@@ -562,24 +566,24 @@ require("lazy").setup({
 						"--glob '!Cargo.lock'",
 					}, " ")
 				})
-			end)
+			end, { desc = 'Search project text' })
 			-- use fzf to ripgrep buffer with <leader>/
 			vim.keymap.set('n', '<leader>/', function()
 				require 'fzf-lua'.lgrep_curbuf()
-			end)
+			end, { desc = 'Search current buffer text' })
 			-- use fzf to browse current-buffer diagnostics with <leader>x
 			vim.keymap.set('n', '<leader>x', function()
 				require 'fzf-lua'.diagnostics_document()
-			end)
+			end, { desc = 'Diagnostics: current buffer' })
 			vim.keymap.set('n', '<leader>.', function()
 				require 'fzf-lua'.resume()
-			end)
+			end, { desc = 'Resume last picker' })
 			vim.keymap.set('n', '<leader>O', function()
 				require 'fzf-lua'.oldfiles()
-			end)
+			end, { desc = 'Open recent file' })
 			vim.keymap.set('n', '<leader>?', function()
-				require 'fzf-lua'.keymaps()
-			end)
+				require 'fzf-lua'.keymaps({ show_details = false })
+			end, { desc = 'Show keymaps' })
 		end
 	},
 	-- LSP
@@ -658,14 +662,16 @@ require("lazy").setup({
 
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
-			vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
-			vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1 }) end)
-			vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1 }) end)
+			vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Diagnostics: show line message' })
+			vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1 }) end, { desc = 'Diagnostics: previous item' })
+			vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1 }) end, { desc = 'Diagnostics: next item' })
 			vim.keymap.set('n', '[e',
-				function() vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR }) end)
+				function() vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR }) end,
+				{ desc = 'Diagnostics: previous error' })
 			vim.keymap.set('n', ']e',
-				function() vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR }) end)
-			vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist)
+				function() vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR }) end,
+				{ desc = 'Diagnostics: next error' })
+			vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Diagnostics: populate location list' })
 
 			local function cargo_bench_targets()
 				local cargo_toml = vim.fn.findfile('Cargo.toml', '.;')
@@ -903,7 +909,7 @@ require("lazy").setup({
 					local node = visible[lnum]
 					if not node then return end
 					if node.expanded then collapse(lnum) else expand(lnum) end
-				end, { buffer = buf, silent = true })
+				end, { buffer = buf, silent = true, desc = 'Call tree: toggle node' })
 				vim.keymap.set('n', 'E', function()
 					local to_expand = {}
 					for _, node in ipairs(visible) do
@@ -915,29 +921,29 @@ require("lazy").setup({
 						local i = find_idx(node)
 						if i then expand(i) end
 					end
-				end, { buffer = buf, silent = true })
+				end, { buffer = buf, silent = true, desc = 'Call tree: expand all visible nodes' })
 				vim.keymap.set('n', 'c', function()
 					local lnum = vim.api.nvim_win_get_cursor(0)[1]
 					local node = visible[lnum]
 					if node and node.expanded then collapse(lnum) end
-				end, { buffer = buf, silent = true })
+				end, { buffer = buf, silent = true, desc = 'Call tree: collapse node' })
 				vim.keymap.set('n', 'C', function()
 					for i = #visible, 1, -1 do
 						if visible[i].expanded then collapse(i) end
 					end
-				end, { buffer = buf, silent = true })
+				end, { buffer = buf, silent = true, desc = 'Call tree: collapse all nodes' })
 				vim.keymap.set('n', '<CR>', function()
 					local node = visible[vim.api.nvim_win_get_cursor(0)[1]]
 					if node then jump({ uri = node.item.uri, range = node.item.selectionRange }) end
-				end, { buffer = buf, silent = true })
+				end, { buffer = buf, silent = true, desc = 'Call tree: jump to symbol' })
 				vim.keymap.set('n', 'o', function()
 					local node = visible[vim.api.nvim_win_get_cursor(0)[1]]
 					if node then jump(node.call_site) end
-				end, { buffer = buf, silent = true })
+				end, { buffer = buf, silent = true, desc = 'Call tree: jump to call site' })
 				vim.keymap.set('n', 'q', function() vim.api.nvim_win_close(win, true) end,
-					{ buffer = buf, silent = true })
+					{ buffer = buf, silent = true, desc = 'Call tree: close window' })
 				vim.keymap.set('n', '<Esc>', function() vim.api.nvim_win_close(win, true) end,
-					{ buffer = buf, silent = true })
+					{ buffer = buf, silent = true, desc = 'Call tree: close window' })
 
 				local max_retries = 60
 				local attempt = 0
@@ -985,61 +991,61 @@ require("lazy").setup({
 					local opts = { buffer = ev.buf }
 					vim.keymap.set({ 'n', 'v' }, 'ga', function()
 						require 'fzf-lua'.lsp_code_actions({ silent = true })
-					end, opts)
+					end, keymap_opts('LSP: code actions', opts))
 					vim.keymap.set('n', 'gD', function()
 						require 'fzf-lua'.lsp_declarations({ winopts = { preview = { hidden = false } } })
-					end, opts)
+					end, keymap_opts('LSP: go to declaration', opts))
 					vim.keymap.set('n', 'gd', function()
 						require 'fzf-lua'.lsp_definitions({ winopts = { preview = { hidden = false } } })
-					end, opts)
-					vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+					end, keymap_opts('LSP: go to definition', opts))
+					vim.keymap.set('n', 'K', vim.lsp.buf.hover, keymap_opts('LSP: hover documentation', opts))
 					vim.keymap.set('n', 'gi', function()
 						require 'fzf-lua'.lsp_implementations({ winopts = { preview = { hidden = false } } })
-					end, opts)
-					vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+					end, keymap_opts('LSP: go to implementation', opts))
+					vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, keymap_opts('LSP: signature help', opts))
 					vim.keymap.set('n', '<leader>i', function()
 						local bufnr = vim.api.nvim_get_current_buf()
 						vim.lsp.inlay_hint.enable(
 							not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }),
 							{ bufnr = bufnr }
 						)
-					end, opts)
-					vim.keymap.set('n', '<leader>Wa', vim.lsp.buf.add_workspace_folder, opts)
-					vim.keymap.set('n', '<leader>Wr', vim.lsp.buf.remove_workspace_folder, opts)
+					end, keymap_opts('LSP: toggle inlay hints', opts))
+					vim.keymap.set('n', '<leader>Wa', vim.lsp.buf.add_workspace_folder, keymap_opts('LSP: add workspace folder', opts))
+					vim.keymap.set('n', '<leader>Wr', vim.lsp.buf.remove_workspace_folder, keymap_opts('LSP: remove workspace folder', opts))
 					vim.keymap.set('n', '<leader>Wl', function()
 						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-					end, opts)
+					end, keymap_opts('LSP: list workspace folders', opts))
 					vim.keymap.set('n', '<leader>D', function()
 						require 'fzf-lua'.lsp_typedefs({ winopts = { preview = { hidden = false } } })
-					end, opts)
+					end, keymap_opts('LSP: go to type definition', opts))
 					vim.keymap.set('n', '<leader>S', function()
 						require 'fzf-lua'.lsp_document_symbols()
-					end, opts)
+					end, keymap_opts('LSP: document symbols', opts))
 					vim.keymap.set('n', '<leader>l', function()
 						require 'fzf-lua'.lsp_finder({ winopts = { preview = { hidden = false } } })
-					end, opts)
-					vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, opts)
-					vim.keymap.set({ 'n', 'v' }, '<leader>a', vim.lsp.buf.code_action, opts)
+					end, keymap_opts('LSP: finder', opts))
+					vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, keymap_opts('LSP: rename symbol', opts))
+					vim.keymap.set({ 'n', 'v' }, '<leader>a', vim.lsp.buf.code_action, keymap_opts('LSP: code action', opts))
 					vim.keymap.set('n', 'gr', function()
 						require 'fzf-lua'.lsp_references({ winopts = { preview = { hidden = false } } })
-					end, opts)
+					end, keymap_opts('LSP: references', opts))
 					local lsp_calls_opts = {
 						winopts = { preview = { hidden = false } },
 						file_ignore_patterns = { "%.rustup/", "%.cargo/registry/", "go/pkg/mod/", "GOROOT", "%/usr/include/c++/%" },
 					}
-					vim.keymap.set('n', '<leader>ci', function() call_tree('incoming') end, opts)
-					vim.keymap.set('n', '<leader>co', function() call_tree('outgoing') end, opts)
+					vim.keymap.set('n', '<leader>ci', function() call_tree('incoming') end, keymap_opts('LSP: incoming call tree', opts))
+					vim.keymap.set('n', '<leader>co', function() call_tree('outgoing') end, keymap_opts('LSP: outgoing call tree', opts))
 					vim.keymap.set('n', '<leader>f', function()
 						vim.lsp.buf.format { async = true }
-					end, opts)
+					end, keymap_opts('LSP: format buffer', opts))
 					local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'), opts)
-					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'), opts)
+					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'), keymap_opts('Rust: view memory layout', opts))
+					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'), keymap_opts('Rust: expand macro', opts))
 					vim.keymap.set('n', '<leader>mi', function()
 						local indent = vim.fn.getline('.'):match('^%s*')
 						vim.fn.append(vim.fn.line('.') - 1, indent .. '#[inline(never)]')
-					end, opts)
+					end, keymap_opts('Rust: insert inline-never attribute', opts))
 					vim.keymap.set('n', '<leader>ma', function()
 						local fn_name = vim.fn.expand('<cword>')
 						local crate_name = nil
@@ -1096,7 +1102,7 @@ require("lazy").setup({
 							})
 							vim.api.nvim_buf_set_lines(buf, 0, -1, false, { 'Running cargo asm...' })
 							vim.bo[buf].filetype = 'asm'
-							vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = buf, silent = true })
+							vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = buf, silent = true, desc = 'Rust asm: close window' })
 							local cmd = vim.list_extend({ 'cargo', 'asm', '--no-color' }, extra_args)
 							vim.list_extend(cmd, { query })
 							vim.fn.jobstart(cmd, {
@@ -1161,7 +1167,7 @@ require("lazy").setup({
 						else
 							resolve_and_run(nil)
 						end
-					end, opts)
+					end, keymap_opts('Rust: show assembly for symbol', opts))
 
 					vim.keymap.set('n', '<leader>mb', function()
 						local cargo_dir, bench_names = cargo_bench_targets()
@@ -1190,7 +1196,7 @@ require("lazy").setup({
 								actions = { ['default'] = function(sel) if sel and sel[1] then run(sel[1]) end end },
 							})
 						end
-					end, opts)
+					end, keymap_opts('Rust: run cargo bench target', opts))
 
 					vim.keymap.set('n', '<leader>mf', function()
 						local cargo_dir, bench_names = cargo_bench_targets()
@@ -1218,7 +1224,7 @@ require("lazy").setup({
 								actions = { ['default'] = function(sel) if sel and sel[1] then run(sel[1]) end end },
 							})
 						end
-					end, opts)
+					end, keymap_opts('Rust: run cargo flamegraph for bench', opts))
 
 					vim.keymap.set('n', '<leader>ms', function()
 						local cargo_toml = vim.fn.findfile('Cargo.toml', '.;')
@@ -1269,7 +1275,7 @@ require("lazy").setup({
 								end)
 							end,
 						})
-					end, opts)
+					end, keymap_opts('Rust: run cargo semver-checks', opts))
 
 					-- None of this semantics tokens business.
 					-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
@@ -1448,17 +1454,17 @@ require("lazy").setup({
 					open_on_run = true,
 				},
 			})
-			vim.keymap.set('n', '<leader>tr', function() require('neotest').run.run() end)
-			vim.keymap.set('n', '<leader>tl', function() require('neotest').run.run_last() end)
-			vim.keymap.set('n', '<leader>tq', function() require('neotest').run.stop() end)
-			vim.keymap.set('n', '<leader>td', function() require('neotest').run.run({ strategy = 'dap' }) end)
-			vim.keymap.set('n', '<leader>tf', function() require('neotest').run.run(vim.fn.expand('%')) end)
-			vim.keymap.set('n', '<leader>ta', function() require('neotest').run.run(vim.fn.getcwd()) end)
-			vim.keymap.set('n', '<leader>ts', function() require('neotest').summary.toggle() end)
-			vim.keymap.set('n', '<leader>to', function() require('neotest').output.open() end)
-			vim.keymap.set('n', '<leader>tp', function() require('neotest').output_panel.toggle() end)
-			vim.keymap.set('n', ']t', function() require('neotest').jump.next({ status = 'failed' }) end)
-			vim.keymap.set('n', '[t', function() require('neotest').jump.prev({ status = 'failed' }) end)
+			vim.keymap.set('n', '<leader>tr', function() require('neotest').run.run() end, { desc = 'Test: run nearest' })
+			vim.keymap.set('n', '<leader>tl', function() require('neotest').run.run_last() end, { desc = 'Test: rerun last' })
+			vim.keymap.set('n', '<leader>tq', function() require('neotest').run.stop() end, { desc = 'Test: stop running test' })
+			vim.keymap.set('n', '<leader>td', function() require('neotest').run.run({ strategy = 'dap' }) end, { desc = 'Test: debug nearest' })
+			vim.keymap.set('n', '<leader>tf', function() require('neotest').run.run(vim.fn.expand('%')) end, { desc = 'Test: run current file' })
+			vim.keymap.set('n', '<leader>ta', function() require('neotest').run.run(vim.fn.getcwd()) end, { desc = 'Test: run all in project' })
+			vim.keymap.set('n', '<leader>ts', function() require('neotest').summary.toggle() end, { desc = 'Test: toggle summary' })
+			vim.keymap.set('n', '<leader>to', function() require('neotest').output.open() end, { desc = 'Test: open output' })
+			vim.keymap.set('n', '<leader>tp', function() require('neotest').output_panel.toggle() end, { desc = 'Test: toggle output panel' })
+			vim.keymap.set('n', ']t', function() require('neotest').jump.next({ status = 'failed' }) end, { desc = 'Test: next failed test' })
+			vim.keymap.set('n', '[t', function() require('neotest').jump.prev({ status = 'failed' }) end, { desc = 'Test: previous failed test' })
 		end,
 	},
 	-- debugging
@@ -1525,16 +1531,16 @@ require("lazy").setup({
 				},
 			}
 
-			vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint)
+			vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, { desc = 'Debug: toggle breakpoint' })
 			vim.keymap.set('n', '<leader>dB', function()
 				dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
-			end)
-			vim.keymap.set('n', '<leader>dc', dap.continue)
-			vim.keymap.set('n', '<leader>dn', dap.step_over)
-			vim.keymap.set('n', '<leader>di', dap.step_into)
-			vim.keymap.set('n', '<leader>do', dap.step_out)
-			vim.keymap.set('n', '<leader>dh', dap.run_to_cursor)
-			vim.keymap.set('n', '<leader>dq', dap.terminate)
+			end, { desc = 'Debug: set conditional breakpoint' })
+			vim.keymap.set('n', '<leader>dc', dap.continue, { desc = 'Debug: continue' })
+			vim.keymap.set('n', '<leader>dn', dap.step_over, { desc = 'Debug: step over' })
+			vim.keymap.set('n', '<leader>di', dap.step_into, { desc = 'Debug: step into' })
+			vim.keymap.set('n', '<leader>do', dap.step_out, { desc = 'Debug: step out' })
+			vim.keymap.set('n', '<leader>dh', dap.run_to_cursor, { desc = 'Debug: run to cursor' })
+			vim.keymap.set('n', '<leader>dq', dap.terminate, { desc = 'Debug: terminate session' })
 		end,
 	},
 	{
@@ -1546,8 +1552,8 @@ require("lazy").setup({
 			dap.listeners.after.event_stopped['dapui_config'] = function() dapui.open() end
 			dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end
 			dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end
-			vim.keymap.set({ 'n', 'v' }, '<leader>de', dapui.eval)
-			vim.keymap.set('n', '<leader>du', dapui.toggle)
+			vim.keymap.set({ 'n', 'v' }, '<leader>de', dapui.eval, { desc = 'Debug: evaluate expression' })
+			vim.keymap.set('n', '<leader>du', dapui.toggle, { desc = 'Debug: toggle UI' })
 		end,
 	},
 	{
@@ -1556,11 +1562,11 @@ require("lazy").setup({
 		config = function()
 			require('persistent-breakpoints').setup({ load_breakpoints_event = { 'BufReadPost' } })
 			local pb = require('persistent-breakpoints.api')
-			vim.keymap.set('n', '<leader>db', pb.toggle_breakpoint)
+			vim.keymap.set('n', '<leader>db', pb.toggle_breakpoint, { desc = 'Debug: toggle persistent breakpoint' })
 			vim.keymap.set('n', '<leader>dB', function()
 				pb.set_conditional_breakpoint(vim.fn.input('Breakpoint condition: '))
-			end)
-			vim.keymap.set('n', '<leader>dx', pb.clear_all_breakpoints)
+			end, { desc = 'Debug: set persistent conditional breakpoint' })
+			vim.keymap.set('n', '<leader>dx', pb.clear_all_breakpoints, { desc = 'Debug: clear all persistent breakpoints' })
 		end,
 	},
 	{
@@ -1576,28 +1582,28 @@ require("lazy").setup({
 			local crates = require("crates")
 			local opts = { silent = true }
 
-			vim.keymap.set("n", "<leader>ct", crates.toggle, opts)
-			vim.keymap.set("n", "<leader>cr", crates.reload, opts)
+			vim.keymap.set("n", "<leader>ct", crates.toggle, keymap_opts('Crates: toggle inline info', opts))
+			vim.keymap.set("n", "<leader>cr", crates.reload, keymap_opts('Crates: reload metadata', opts))
 
-			vim.keymap.set("n", "<leader>cv", crates.show_versions_popup, opts)
-			vim.keymap.set("n", "<leader>cf", crates.show_features_popup, opts)
-			vim.keymap.set("n", "<leader>cd", crates.show_dependencies_popup, opts)
+			vim.keymap.set("n", "<leader>cv", crates.show_versions_popup, keymap_opts('Crates: show versions', opts))
+			vim.keymap.set("n", "<leader>cf", crates.show_features_popup, keymap_opts('Crates: show features', opts))
+			vim.keymap.set("n", "<leader>cd", crates.show_dependencies_popup, keymap_opts('Crates: show dependencies', opts))
 
-			vim.keymap.set("n", "<leader>cu", crates.update_crate, opts)
-			vim.keymap.set("v", "<leader>cu", crates.update_crates, opts)
-			vim.keymap.set("n", "<leader>ca", crates.update_all_crates, opts)
-			vim.keymap.set("n", "<leader>cU", crates.upgrade_crate, opts)
-			vim.keymap.set("v", "<leader>cU", crates.upgrade_crates, opts)
-			vim.keymap.set("n", "<leader>cA", crates.upgrade_all_crates, opts)
+			vim.keymap.set("n", "<leader>cu", crates.update_crate, keymap_opts('Crates: update crate', opts))
+			vim.keymap.set("v", "<leader>cu", crates.update_crates, keymap_opts('Crates: update selected crates', opts))
+			vim.keymap.set("n", "<leader>ca", crates.update_all_crates, keymap_opts('Crates: update all crates', opts))
+			vim.keymap.set("n", "<leader>cU", crates.upgrade_crate, keymap_opts('Crates: upgrade crate', opts))
+			vim.keymap.set("v", "<leader>cU", crates.upgrade_crates, keymap_opts('Crates: upgrade selected crates', opts))
+			vim.keymap.set("n", "<leader>cA", crates.upgrade_all_crates, keymap_opts('Crates: upgrade all crates', opts))
 
-			vim.keymap.set("n", "<leader>ce", crates.expand_plain_crate_to_inline_table, opts)
-			vim.keymap.set("n", "<leader>cE", crates.extract_crate_into_table, opts)
+			vim.keymap.set("n", "<leader>ce", crates.expand_plain_crate_to_inline_table, keymap_opts('Crates: expand crate to inline table', opts))
+			vim.keymap.set("n", "<leader>cE", crates.extract_crate_into_table, keymap_opts('Crates: extract crate into table', opts))
 
-			vim.keymap.set("n", "<leader>cH", crates.open_homepage, opts)
-			vim.keymap.set("n", "<leader>cR", crates.open_repository, opts)
-			vim.keymap.set("n", "<leader>cD", crates.open_documentation, opts)
-			vim.keymap.set("n", "<leader>cC", crates.open_crates_io, opts)
-			vim.keymap.set("n", "<leader>cL", crates.open_lib_rs, opts)
+			vim.keymap.set("n", "<leader>cH", crates.open_homepage, keymap_opts('Crates: open homepage', opts))
+			vim.keymap.set("n", "<leader>cR", crates.open_repository, keymap_opts('Crates: open repository', opts))
+			vim.keymap.set("n", "<leader>cD", crates.open_documentation, keymap_opts('Crates: open documentation', opts))
+			vim.keymap.set("n", "<leader>cC", crates.open_crates_io, keymap_opts('Crates: open crates.io page', opts))
+			vim.keymap.set("n", "<leader>cL", crates.open_lib_rs, keymap_opts('Crates: open lib.rs page', opts))
 		end,
 	},
 	{
