@@ -209,6 +209,13 @@ vim.api.nvim_create_autocmd('Filetype', {
 		vim.opt_local.colorcolumn = '73'
 	end,
 })
+vim.api.nvim_create_autocmd('Filetype', {
+	pattern = 'markdown',
+	group = text,
+	callback = function()
+		vim.treesitter.stop()
+	end,
+})
 --- tex has so much syntax that a little wider is ok
 vim.api.nvim_create_autocmd('Filetype', {
 	pattern = 'tex',
@@ -442,6 +449,12 @@ require("lazy").setup({
 		'andymass/vim-matchup',
 		config = function()
 			vim.g.matchup_matchparen_offscreen = { method = "popup" }
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = "markdown",
+				callback = function()
+					vim.b.matchup_matchparen_enabled = 0
+				end,
+			})
 		end
 	},
 	-- option to center the editor
