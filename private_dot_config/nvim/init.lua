@@ -450,7 +450,7 @@ require("lazy").setup({
 		config = function()
 			vim.g.matchup_matchparen_offscreen = { method = "popup" }
 			vim.api.nvim_create_autocmd("FileType", {
-				pattern = "markdown",
+				pattern = { "markdown", "bash", "sh", "zsh" },
 				callback = function()
 					vim.b.matchup_matchparen_enabled = 0
 				end,
