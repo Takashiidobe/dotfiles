@@ -127,8 +127,10 @@ vim.keymap.set('', 'L', '$', { desc = 'Jump to end of line' })
 -- Neat X clipboard integration
 -- <leader>p will paste clipboard into buffer
 -- <leader>c will copy entire buffer into clipboard
-vim.keymap.set('n', '<leader>p', function() vim.cmd('read !' .. clipboard_paste) end, { desc = 'Paste system clipboard below cursor' })
-vim.keymap.set('n', '<leader>C', function() vim.cmd('w !' .. clipboard_copy) end, { desc = 'Copy buffer to system clipboard' })
+vim.keymap.set('n', '<leader>p', function() vim.cmd('read !' .. clipboard_paste) end,
+	{ desc = 'Paste system clipboard below cursor' })
+vim.keymap.set('n', '<leader>C', function() vim.cmd('w !' .. clipboard_copy) end,
+	{ desc = 'Copy buffer to system clipboard' })
 -- <leader><leader> toggles between buffers
 vim.keymap.set('n', '<leader><leader>', '<c-^>', { desc = 'Switch to alternate buffer' })
 -- <leader>, shows/hides hidden characters
@@ -429,7 +431,8 @@ require("lazy").setup({
 		config = function()
 			vim.keymap.set('n', '<leader>GG', '<cmd>Git<cr>', { desc = 'Git: open fugitive status' })
 			vim.keymap.set('n', '<leader>B', '<cmd>Git blame<cr>', { desc = 'Git: blame current file' })
-			vim.keymap.set({ 'n', 'v' }, '<leader>GB', '<cmd>GBrowse<cr>', { desc = 'GitHub: browse current file or selection' })
+			vim.keymap.set({ 'n', 'v' }, '<leader>GB', '<cmd>GBrowse<cr>',
+				{ desc = 'GitHub: browse current file or selection' })
 		end
 	},
 	-- support for github
@@ -634,7 +637,10 @@ require("lazy").setup({
 			})
 			vim.lsp.enable('rust_analyzer')
 
-			vim.lsp.config('clangd', { filetypes = { "c", "cpp", "objc", "objcpp" } })
+			vim.lsp.config('clangd', {
+				filetypes = { "c", "cpp", "objc", "objcpp" },
+				flags = { debounce_text_changes = 500 },
+			})
 			vim.lsp.enable('clangd')
 
 			-- Bash LSP
@@ -676,7 +682,8 @@ require("lazy").setup({
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
 			vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Diagnostics: show line message' })
-			vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1 }) end, { desc = 'Diagnostics: previous item' })
+			vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1 }) end,
+				{ desc = 'Diagnostics: previous item' })
 			vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1 }) end, { desc = 'Diagnostics: next item' })
 			vim.keymap.set('n', '[e',
 				function() vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR }) end,
@@ -1023,8 +1030,10 @@ require("lazy").setup({
 							{ bufnr = bufnr }
 						)
 					end, keymap_opts('LSP: toggle inlay hints', opts))
-					vim.keymap.set('n', '<leader>Wa', vim.lsp.buf.add_workspace_folder, keymap_opts('LSP: add workspace folder', opts))
-					vim.keymap.set('n', '<leader>Wr', vim.lsp.buf.remove_workspace_folder, keymap_opts('LSP: remove workspace folder', opts))
+					vim.keymap.set('n', '<leader>Wa', vim.lsp.buf.add_workspace_folder,
+						keymap_opts('LSP: add workspace folder', opts))
+					vim.keymap.set('n', '<leader>Wr', vim.lsp.buf.remove_workspace_folder,
+						keymap_opts('LSP: remove workspace folder', opts))
 					vim.keymap.set('n', '<leader>Wl', function()
 						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 					end, keymap_opts('LSP: list workspace folders', opts))
@@ -1046,15 +1055,19 @@ require("lazy").setup({
 						winopts = { preview = { hidden = false } },
 						file_ignore_patterns = { "%.rustup/", "%.cargo/registry/", "go/pkg/mod/", "GOROOT", "%/usr/include/c++/%" },
 					}
-					vim.keymap.set('n', '<leader>ci', function() call_tree('incoming') end, keymap_opts('LSP: incoming call tree', opts))
-					vim.keymap.set('n', '<leader>co', function() call_tree('outgoing') end, keymap_opts('LSP: outgoing call tree', opts))
+					vim.keymap.set('n', '<leader>ci', function() call_tree('incoming') end,
+						keymap_opts('LSP: incoming call tree', opts))
+					vim.keymap.set('n', '<leader>co', function() call_tree('outgoing') end,
+						keymap_opts('LSP: outgoing call tree', opts))
 					vim.keymap.set('n', '<leader>f', function()
 						vim.lsp.buf.format { async = true }
 					end, keymap_opts('LSP: format buffer', opts))
 					local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'), keymap_opts('Rust: view memory layout', opts))
-					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'), keymap_opts('Rust: expand macro', opts))
+					vim.keymap.set('n', '<leader>ml', require('ferris.methods.view_memory_layout'),
+						keymap_opts('Rust: view memory layout', opts))
+					vim.keymap.set('n', '<leader>me', require('ferris.methods.expand_macro'),
+						keymap_opts('Rust: expand macro', opts))
 					vim.keymap.set('n', '<leader>mi', function()
 						local indent = vim.fn.getline('.'):match('^%s*')
 						vim.fn.append(vim.fn.line('.') - 1, indent .. '#[inline(never)]')
@@ -1469,15 +1482,23 @@ require("lazy").setup({
 			})
 			vim.keymap.set('n', '<leader>tr', function() require('neotest').run.run() end, { desc = 'Test: run nearest' })
 			vim.keymap.set('n', '<leader>tl', function() require('neotest').run.run_last() end, { desc = 'Test: rerun last' })
-			vim.keymap.set('n', '<leader>tq', function() require('neotest').run.stop() end, { desc = 'Test: stop running test' })
-			vim.keymap.set('n', '<leader>td', function() require('neotest').run.run({ strategy = 'dap' }) end, { desc = 'Test: debug nearest' })
-			vim.keymap.set('n', '<leader>tf', function() require('neotest').run.run(vim.fn.expand('%')) end, { desc = 'Test: run current file' })
-			vim.keymap.set('n', '<leader>ta', function() require('neotest').run.run(vim.fn.getcwd()) end, { desc = 'Test: run all in project' })
-			vim.keymap.set('n', '<leader>ts', function() require('neotest').summary.toggle() end, { desc = 'Test: toggle summary' })
+			vim.keymap.set('n', '<leader>tq', function() require('neotest').run.stop() end,
+				{ desc = 'Test: stop running test' })
+			vim.keymap.set('n', '<leader>td', function() require('neotest').run.run({ strategy = 'dap' }) end,
+				{ desc = 'Test: debug nearest' })
+			vim.keymap.set('n', '<leader>tf', function() require('neotest').run.run(vim.fn.expand('%')) end,
+				{ desc = 'Test: run current file' })
+			vim.keymap.set('n', '<leader>ta', function() require('neotest').run.run(vim.fn.getcwd()) end,
+				{ desc = 'Test: run all in project' })
+			vim.keymap.set('n', '<leader>ts', function() require('neotest').summary.toggle() end,
+				{ desc = 'Test: toggle summary' })
 			vim.keymap.set('n', '<leader>to', function() require('neotest').output.open() end, { desc = 'Test: open output' })
-			vim.keymap.set('n', '<leader>tp', function() require('neotest').output_panel.toggle() end, { desc = 'Test: toggle output panel' })
-			vim.keymap.set('n', ']t', function() require('neotest').jump.next({ status = 'failed' }) end, { desc = 'Test: next failed test' })
-			vim.keymap.set('n', '[t', function() require('neotest').jump.prev({ status = 'failed' }) end, { desc = 'Test: previous failed test' })
+			vim.keymap.set('n', '<leader>tp', function() require('neotest').output_panel.toggle() end,
+				{ desc = 'Test: toggle output panel' })
+			vim.keymap.set('n', ']t', function() require('neotest').jump.next({ status = 'failed' }) end,
+				{ desc = 'Test: next failed test' })
+			vim.keymap.set('n', '[t', function() require('neotest').jump.prev({ status = 'failed' }) end,
+				{ desc = 'Test: previous failed test' })
 		end,
 	},
 	-- debugging
@@ -1609,8 +1630,10 @@ require("lazy").setup({
 			vim.keymap.set("v", "<leader>cU", crates.upgrade_crates, keymap_opts('Crates: upgrade selected crates', opts))
 			vim.keymap.set("n", "<leader>cA", crates.upgrade_all_crates, keymap_opts('Crates: upgrade all crates', opts))
 
-			vim.keymap.set("n", "<leader>ce", crates.expand_plain_crate_to_inline_table, keymap_opts('Crates: expand crate to inline table', opts))
-			vim.keymap.set("n", "<leader>cE", crates.extract_crate_into_table, keymap_opts('Crates: extract crate into table', opts))
+			vim.keymap.set("n", "<leader>ce", crates.expand_plain_crate_to_inline_table,
+				keymap_opts('Crates: expand crate to inline table', opts))
+			vim.keymap.set("n", "<leader>cE", crates.extract_crate_into_table,
+				keymap_opts('Crates: extract crate into table', opts))
 
 			vim.keymap.set("n", "<leader>cH", crates.open_homepage, keymap_opts('Crates: open homepage', opts))
 			vim.keymap.set("n", "<leader>cR", crates.open_repository, keymap_opts('Crates: open repository', opts))
