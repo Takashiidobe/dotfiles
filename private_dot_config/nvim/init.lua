@@ -229,6 +229,19 @@ vim.api.nvim_create_autocmd('Filetype', {
 	end,
 })
 
+-- llvm-project is large enough that clangd diagnostics cause lag; delay them
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function(ev)
+		local clients = vim.lsp.get_clients({ name = "clangd" })
+		if #clients == 0 then return end
+		local ns = vim.lsp.diagnostic.get_namespace(clients[1].id)
+		local in_llvm = vim.api.nvim_buf_get_name(ev.buf):find("/llvm-project/", 1, true)
+		vim.diagnostic.config({
+			update_in_insert = not in_llvm,
+		}, ns)
+	end,
+})
+
 -------------------------------------------------------------------------------
 --
 -- dependency checker
@@ -254,15 +267,27 @@ vim.api.nvim_create_user_command('CheckDeps', function()
 		{ group = 'Rust', name = 'cargo-semver-checks', cmd = 'cargo-semver-checks' },
 		{ group = 'Rust', name = 'codelldb',            cmd = codelldb_cmd,         path = true },
 		not is_mac and { group = 'Rust', name = 'perf (flamegraph)', cmd = 'perf' } or nil,
-		{ group = 'LSP',    name = 'node (for TS/bash LSPs)',    cmd = 'node' },
-		{ group = 'LSP',    name = 'clangd',                     cmd = 'clangd' },
-		{ group = 'LSP',    name = 'gopls',                      cmd = 'gopls' },
-		{ group = 'LSP',    name = 'lua-language-server',        cmd = 'lua-language-server' },
-		{ group = 'LSP',    name = 'typescript-language-server', cmd = 'typescript-language-server' },
-		{ group = 'LSP*',   name = 'bash-language-server',       cmd = 'bash-language-server' },
-		{ group = 'LSP*',   name = 'texlab',                     cmd = 'texlab' },
-		{ group = 'LSP*',   name = 'ruff',                       cmd = 'ruff' },
-		{ group = 'Tools*', name = 'zathura',                    cmd = 'zathura' },
+		{ group = 'LSP',         name = 'node (for TS/bash LSPs)',    cmd = 'node' },
+		{ group = 'LSP',         name = 'clangd',                     cmd = 'clangd' },
+		{ group = 'LSP',         name = 'gopls',                      cmd = 'gopls' },
+		{ group = 'LSP',         name = 'lua-language-server',        cmd = 'lua-language-server' },
+		{ group = 'LSP',         name = 'typescript-language-server', cmd = 'typescript-language-server' },
+		{ group = 'LSP*',        name = 'bash-language-server',       cmd = 'bash-language-server' },
+		{ group = 'LSP*',        name = 'texlab',                     cmd = 'texlab' },
+		{ group = 'LSP*',        name = 'ruff',                       cmd = 'ruff' },
+		{ group = 'Formatters',  name = 'stylua',                     cmd = 'stylua' },
+		{ group = 'Formatters',  name = 'isort',                      cmd = 'isort' },
+		{ group = 'Formatters',  name = 'black',                      cmd = 'black' },
+		{ group = 'Formatters',  name = 'prettier',                   cmd = 'prettier' },
+		{ group = 'Formatters',  name = 'clang-format',               cmd = 'clang-format' },
+		{ group = 'Formatters',  name = 'gofmt',                      cmd = 'gofmt' },
+		{ group = 'Formatters',  name = 'taplo',                      cmd = 'taplo' },
+		{ group = 'Formatters*', name = 'erlfmt',                     cmd = 'erlfmt' },
+		{ group = 'Formatters*', name = 'mix (elixir)',               cmd = 'mix' },
+		{ group = 'Formatters*', name = 'ocamlformat',                cmd = 'ocamlformat' },
+		{ group = 'Formatters*', name = 'fourmolu (haskell)',         cmd = 'fourmolu' },
+		{ group = 'Formatters*', name = 'rubocop (ruby)',             cmd = 'rubocop' },
+		{ group = 'Tools*',      name = 'zathura',                    cmd = 'zathura' },
 	}
 
 	-- nvim version check
@@ -602,6 +627,42 @@ require("lazy").setup({
 			end, { desc = 'Show keymaps' })
 		end
 	},
+	{
+		'stevearc/conform.nvim',
+		config = function()
+			require("conform").setup({
+				formatters_by_ft = {
+					lua             = { "stylua" },
+					python          = { "isort", "black" },
+					rust            = { "rustfmt" },
+					javascript      = { 'prettier' },
+					javascriptreact = { 'prettier' },
+					typescript      = { 'prettier' },
+					typescriptreact = { 'prettier' },
+					markdown        = { "prettier" },
+					cpp             = { "clang-format" },
+					c               = { "clang-format" },
+					go              = { "gofmt" },
+					json            = { "prettier" },
+					yaml            = { 'prettier' },
+					toml            = { "taplo" },
+					erlang          = { "erlfmt" },
+					elixir          = { "mix" },
+					ocaml           = { "ocamlformat" },
+					haskell         = { "fourmolu" },
+					ruby            = { "rubocop" },
+				},
+				format_on_save = function(bufnr)
+					local bufname = vim.api.nvim_buf_get_name(bufnr)
+					local llvm_root = vim.fn.expand("~/llvm-project/")
+					if bufname:sub(1, #llvm_root) == llvm_root then
+						return nil
+					end
+					return { timeout_ms = 500, lsp_format = "fallback" }
+				end,
+			})
+		end,
+	},
 	-- LSP
 	{
 		'neovim/nvim-lspconfig',
@@ -677,6 +738,11 @@ require("lazy").setup({
 			-- Lua
 			if vim.fn.executable('lua-language-server') == 1 then
 				vim.lsp.enable('lua_ls')
+			end
+
+			-- Markdown
+			if vim.fn.executable('marksman') == 1 then
+				vim.lsp.enable('marksman')
 			end
 
 			-- Global mappings.
@@ -1308,23 +1374,6 @@ require("lazy").setup({
 					if client then
 						client.server_capabilities.semanticTokensProvider = nil
 					end
-
-					if client and client.server_capabilities.documentFormattingProvider then
-						local bufnr = ev.buf
-						local bufname = vim.api.nvim_buf_get_name(bufnr)
-						local llvm_root = vim.fn.expand("~/llvm-project/")
-						local skip_autoformat = client.name == "clangd" and bufname:sub(1, #llvm_root) == llvm_root
-
-						if not skip_autoformat then
-							vim.api.nvim_create_autocmd("BufWritePre", {
-								group = vim.api.nvim_create_augroup("LspFormatOnSave", { clear = false }),
-								buffer = bufnr,
-								callback = function()
-									vim.lsp.buf.format({ bufnr = bufnr, async = false })
-								end,
-							})
-						end
-					end
 				end,
 			})
 		end
@@ -1646,6 +1695,9 @@ require("lazy").setup({
 		"coder/claudecode.nvim",
 		dependencies = { "folke/snacks.nvim" },
 		config = true,
+		opts = {
+			terminal_cmd = "claude --dangerously-skip-permissions",
+		},
 		keys = {
 			{ "<leader>cc",  "<cmd>ClaudeCode<cr>",           desc = "Toggle Claude" },
 			{ "<leader>ccs", "<cmd>ClaudeCodeSend<cr>",       mode = "v",            desc = "Send to Claude" },
@@ -1668,7 +1720,7 @@ require("lazy").setup({
 					col = nil,
 					title = 'codex',
 				},
-				codex_cmd = { 'codex' },
+				codex_cmd = { 'codex --dangerously-bypass-approvals-and-sandbox' },
 				focus_after_send = true,
 				log_level = 'debug',
 				autostart = false,
