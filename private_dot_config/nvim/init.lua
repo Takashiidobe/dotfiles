@@ -658,7 +658,7 @@ require("lazy").setup({
 					if bufname:sub(1, #llvm_root) == llvm_root then
 						return nil
 					end
-					return { timeout_ms = 500, lsp_format = "fallback" }
+					return { timeout_ms = 1000, lsp_format = "fallback" }
 				end,
 			})
 		end,
@@ -700,7 +700,7 @@ require("lazy").setup({
 
 			vim.lsp.config('clangd', {
 				filetypes = { "c", "cpp", "objc", "objcpp" },
-				flags = { debounce_text_changes = 500 },
+				flags = { debounce_text_changes = 1000 },
 			})
 			vim.lsp.enable('clangd')
 
@@ -738,11 +738,6 @@ require("lazy").setup({
 			-- Lua
 			if vim.fn.executable('lua-language-server') == 1 then
 				vim.lsp.enable('lua_ls')
-			end
-
-			-- Markdown
-			if vim.fn.executable('marksman') == 1 then
-				vim.lsp.enable('marksman')
 			end
 
 			-- Global mappings.
