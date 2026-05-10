@@ -1864,5 +1864,31 @@ require("lazy").setup({
 			"ibhagwan/fzf-lua",
 			"nvim-tree/nvim-web-devicons",
 		},
+	},
+	{
+		"lewis6991/gitsigns.nvim",
+		event = { "BufReadPre", "BufNewFile" },
+		opts = {
+			on_attach = function(bufnr)
+				local gs = require("gitsigns")
+
+				vim.keymap.set("n", "]h", gs.next_hunk, { buffer = bufnr, desc = "Git: next hunk" })
+				vim.keymap.set("n", "[h", gs.prev_hunk, { buffer = bufnr, desc = "Git: previous hunk" })
+
+				vim.keymap.set("n", "<leader>hp", gs.preview_hunk, { buffer = bufnr, desc = "Git: preview hunk" })
+				vim.keymap.set("n", "<leader>hb", gs.blame_line, { buffer = bufnr, desc = "Git: blame line" })
+				vim.keymap.set("n", "<leader>hd", gs.diffthis, { buffer = bufnr, desc = "Git: diff this" })
+
+				vim.keymap.set("n", "<leader>hs", gs.stage_hunk, { buffer = bufnr, desc = "Git: stage hunk" })
+				vim.keymap.set("v", "<leader>hs", function()
+					gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+				end, { buffer = bufnr, desc = "Git: stage selected hunk" })
+
+				vim.keymap.set("n", "<leader>hr", gs.reset_hunk, { buffer = bufnr, desc = "Git: reset hunk" })
+				vim.keymap.set("v", "<leader>hr", function()
+					gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+				end, { buffer = bufnr, desc = "Git: reset selected hunk" })
+			end,
+		},
 	}
 })
