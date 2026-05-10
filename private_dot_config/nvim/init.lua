@@ -145,7 +145,7 @@ vim.keymap.set('n', 'g*', 'g*zz', { silent = true, desc = 'Search partial word u
 vim.keymap.set('n', '?', '?\\v', { desc = 'Search backward with very magic regex' })
 vim.keymap.set('n', '/', '/\\v', { desc = 'Search forward with very magic regex' })
 vim.keymap.set('c', '%s/', '%sm/', { desc = 'Use magic mode for substitute commands' })
-vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeToggle<cr>', { desc = 'Toggle file tree' })
+vim.keymap.set('n', '<leader>p', '<cmd>NvimTreeToggle<cr>', { desc = 'Toggle file tree' })
 -- no arrow keys --- force yourself to use the home row
 vim.keymap.set('n', '<up>', '<nop>', { desc = 'Disable up arrow' })
 vim.keymap.set('n', '<down>', '<nop>', { desc = 'Disable down arrow' })
@@ -419,7 +419,8 @@ require("lazy").setup({
 				active = {
 					left = {
 						{ 'mode',     'paste' },
-						{ 'readonly', 'filename', 'modified' }
+						{ 'readonly', 'filename', 'modified' },
+						{ 'gitbranch' }
 					},
 					right = {
 						{ 'lineinfo' },
@@ -428,6 +429,7 @@ require("lazy").setup({
 					},
 				},
 				component_function = {
+					gitbranch = 'LightlineGitBranch',
 					filename = 'LightlineFilename'
 				},
 			}
@@ -444,6 +446,10 @@ require("lazy").setup({
 				[[
 				function! g:LightlineFilename()
 					return v:lua.LightlineFilenameInLua()
+				endfunction
+				function! g:LightlineGitBranch()
+					let branch = FugitiveHead()
+					return branch !=# '' ? ' ' . branch : ''
 				endfunction
 				]],
 				{ output = false }
@@ -1715,7 +1721,7 @@ require("lazy").setup({
 					col = nil,
 					title = 'codex',
 				},
-				codex_cmd = { 'codex --dangerously-bypass-approvals-and-sandbox' },
+				codex_cmd = { 'codex' },
 				focus_after_send = true,
 				log_level = 'debug',
 				autostart = false,
@@ -1746,5 +1752,117 @@ require("lazy").setup({
 				require('codex').toggle()
 			end, { desc = 'Codex: Toggle' })
 		end,
+	},
+	{
+		"pwntester/octo.nvim",
+		cmd = "Octo",
+		opts = {
+			picker = "fzf-lua",
+			-- bare Octo command opens picker of commands
+			enable_builtin = true,
+			mappings = {
+				pull_request = {
+					review_start = { lhs = "<leader>ors", desc = "start review" },
+					review_resume = { lhs = "<leader>orr", desc = "resume review" },
+					resolve_thread = { lhs = "<leader>ort", desc = "resolve thread" },
+					unresolve_thread = { lhs = "<leader>orT", desc = "unresolve thread" },
+				},
+				review_diff = {
+					add_review_comment = { lhs = "<leader>orc", desc = "add review comment", mode = { "n", "x" } },
+					add_review_suggestion = { lhs = "<leader>orS", desc = "add review suggestion", mode = { "n", "x" } },
+					submit_review = { lhs = "<leader>oru", desc = "submit review" },
+					discard_review = { lhs = "<leader>ord", desc = "discard review" },
+					focus_files = { lhs = "<leader>orf", desc = "focus changed files" },
+					toggle_files = { lhs = "<leader>orb", desc = "toggle changed files" },
+					close_review_tab = { lhs = "<leader>orx", desc = "close review tab" },
+				},
+				review_thread = {
+					add_comment = { lhs = "<leader>orc", desc = "add comment" },
+					add_suggestion = { lhs = "<leader>orS", desc = "add suggestion" },
+					resolve_thread = { lhs = "<leader>ort", desc = "resolve thread" },
+					unresolve_thread = { lhs = "<leader>orT", desc = "unresolve thread" },
+				},
+				submit_win = {
+					approve_review = { lhs = "<leader>ora", desc = "approve review", mode = { "n" } },
+					comment_review = { lhs = "<leader>orm", desc = "comment review", mode = { "n" } },
+					request_changes = { lhs = "<leader>orq", desc = "request changes", mode = { "n" } },
+					close_review_tab = { lhs = "<leader>orx", desc = "close review tab", mode = { "n" } },
+				},
+			},
+		},
+		keys = {
+			{
+				"<leader>oi",
+				"<CMD>Octo issue list<CR>",
+				desc = "List GitHub Issues",
+			},
+			{
+				"<leader>op",
+				"<CMD>Octo pr list<CR>",
+				desc = "List GitHub PullRequests",
+			},
+			{
+				"<leader>od",
+				"<CMD>Octo discussion list<CR>",
+				desc = "List GitHub Discussions",
+			},
+			{
+				"<leader>on",
+				"<CMD>Octo notification list<CR>",
+				desc = "List GitHub Notifications",
+			},
+			{
+				"<leader>os",
+				function()
+					require("octo.utils").create_base_search_command { include_current_repo = true }
+				end,
+				desc = "Search GitHub",
+			},
+			{
+				"<leader>or",
+				"<CMD>Octo review<CR>",
+				desc = "Start or resume GitHub PR review",
+			},
+			{
+				"<leader>ors",
+				"<CMD>Octo review start<CR>",
+				desc = "Start GitHub PR review",
+			},
+			{
+				"<leader>orr",
+				"<CMD>Octo review resume<CR>",
+				desc = "Resume GitHub PR review",
+			},
+			{
+				"<leader>oru",
+				"<CMD>Octo review submit<CR>",
+				desc = "Submit GitHub PR review",
+			},
+			{
+				"<leader>orc",
+				"<CMD>Octo review comments<CR>",
+				desc = "List pending GitHub review comments",
+			},
+			{
+				"<leader>orC",
+				"<CMD>Octo review commit<CR>",
+				desc = "Pick GitHub PR review commit",
+			},
+			{
+				"<leader>ord",
+				"<CMD>Octo review discard<CR>",
+				desc = "Discard GitHub PR review",
+			},
+			{
+				"<leader>orx",
+				"<CMD>Octo review close<CR>",
+				desc = "Close GitHub PR review",
+			},
+		},
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"ibhagwan/fzf-lua",
+			"nvim-tree/nvim-web-devicons",
+		},
 	}
 })
