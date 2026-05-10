@@ -16,7 +16,7 @@ local open_cmd = is_mac and 'open' or 'xdg-open'
 local clipboard_copy = is_mac and 'pbcopy' or 'wl-copy'
 local clipboard_paste = is_mac and 'pbpaste' or 'wl-paste'
 local codelldb_cmd = is_mac
-		and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or '~/.local/bin/codelldb')
+		and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or vim.fn.expand('~/.local/bin/codelldb'))
 		or '/usr/lib/codelldb/adapter/codelldb'
 local liblldb_path = is_mac
 		and vim.fn.expand('~/.local/share/codelldb/lldb/lib/liblldb.dylib')
