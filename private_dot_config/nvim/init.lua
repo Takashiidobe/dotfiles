@@ -16,10 +16,10 @@ local open_cmd = is_mac and 'open' or 'xdg-open'
 local clipboard_copy = is_mac and 'pbcopy' or 'wl-copy'
 local clipboard_paste = is_mac and 'pbpaste' or 'wl-paste'
 local codelldb_cmd = is_mac
-		and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or '/opt/homebrew/bin/codelldb')
+		and (vim.fn.exepath('codelldb') ~= '' and vim.fn.exepath('codelldb') or '~/.local/bin/codelldb')
 		or '/usr/lib/codelldb/adapter/codelldb'
 local liblldb_path = is_mac
-		and '/opt/homebrew/lib/liblldb.dylib'
+		and vim.fn.expand('~/.local/share/codelldb/lldb/lib/liblldb.dylib')
 		or '/usr/lib/codelldb/lldb/lib/liblldb.so'
 
 -- disable netrw
@@ -124,13 +124,6 @@ vim.keymap.set('n', '<C-h>', '<cmd>nohlsearch<cr>', { desc = 'Clear search highl
 -- Jump to start and end of line using the home row keys
 vim.keymap.set('', 'H', '^', { desc = 'Jump to first non-blank character' })
 vim.keymap.set('', 'L', '$', { desc = 'Jump to end of line' })
--- Neat X clipboard integration
--- <leader>p will paste clipboard into buffer
--- <leader>c will copy entire buffer into clipboard
-vim.keymap.set('n', '<leader>p', function() vim.cmd('read !' .. clipboard_paste) end,
-	{ desc = 'Paste system clipboard below cursor' })
-vim.keymap.set('n', '<leader>C', function() vim.cmd('w !' .. clipboard_copy) end,
-	{ desc = 'Copy buffer to system clipboard' })
 -- <leader><leader> toggles between buffers
 vim.keymap.set('n', '<leader><leader>', '<c-^>', { desc = 'Switch to alternate buffer' })
 -- <leader>, shows/hides hidden characters
@@ -212,7 +205,7 @@ vim.api.nvim_create_autocmd('Filetype', {
 	end,
 })
 vim.api.nvim_create_autocmd('Filetype', {
-	pattern = 'markdown',
+	pattern = { 'markdown', 'snacks_picker_list', 'snacks_picker_preview' },
 	group = text,
 	callback = function()
 		vim.treesitter.stop()
@@ -1754,118 +1747,6 @@ require("lazy").setup({
 		end,
 	},
 	{
-		"pwntester/octo.nvim",
-		cmd = "Octo",
-		opts = {
-			picker = "fzf-lua",
-			-- bare Octo command opens picker of commands
-			enable_builtin = true,
-			mappings = {
-				pull_request = {
-					review_start = { lhs = "<leader>ors", desc = "start review" },
-					review_resume = { lhs = "<leader>orr", desc = "resume review" },
-					resolve_thread = { lhs = "<leader>ort", desc = "resolve thread" },
-					unresolve_thread = { lhs = "<leader>orT", desc = "unresolve thread" },
-				},
-				review_diff = {
-					add_review_comment = { lhs = "<leader>orc", desc = "add review comment", mode = { "n", "x" } },
-					add_review_suggestion = { lhs = "<leader>orS", desc = "add review suggestion", mode = { "n", "x" } },
-					submit_review = { lhs = "<leader>oru", desc = "submit review" },
-					discard_review = { lhs = "<leader>ord", desc = "discard review" },
-					focus_files = { lhs = "<leader>orf", desc = "focus changed files" },
-					toggle_files = { lhs = "<leader>orb", desc = "toggle changed files" },
-					close_review_tab = { lhs = "<leader>orx", desc = "close review tab" },
-				},
-				review_thread = {
-					add_comment = { lhs = "<leader>orc", desc = "add comment" },
-					add_suggestion = { lhs = "<leader>orS", desc = "add suggestion" },
-					resolve_thread = { lhs = "<leader>ort", desc = "resolve thread" },
-					unresolve_thread = { lhs = "<leader>orT", desc = "unresolve thread" },
-				},
-				submit_win = {
-					approve_review = { lhs = "<leader>ora", desc = "approve review", mode = { "n" } },
-					comment_review = { lhs = "<leader>orm", desc = "comment review", mode = { "n" } },
-					request_changes = { lhs = "<leader>orq", desc = "request changes", mode = { "n" } },
-					close_review_tab = { lhs = "<leader>orx", desc = "close review tab", mode = { "n" } },
-				},
-			},
-		},
-		keys = {
-			{
-				"<leader>oi",
-				"<CMD>Octo issue list<CR>",
-				desc = "List GitHub Issues",
-			},
-			{
-				"<leader>op",
-				"<CMD>Octo pr list<CR>",
-				desc = "List GitHub PullRequests",
-			},
-			{
-				"<leader>od",
-				"<CMD>Octo discussion list<CR>",
-				desc = "List GitHub Discussions",
-			},
-			{
-				"<leader>on",
-				"<CMD>Octo notification list<CR>",
-				desc = "List GitHub Notifications",
-			},
-			{
-				"<leader>os",
-				function()
-					require("octo.utils").create_base_search_command { include_current_repo = true }
-				end,
-				desc = "Search GitHub",
-			},
-			{
-				"<leader>or",
-				"<CMD>Octo review<CR>",
-				desc = "Start or resume GitHub PR review",
-			},
-			{
-				"<leader>ors",
-				"<CMD>Octo review start<CR>",
-				desc = "Start GitHub PR review",
-			},
-			{
-				"<leader>orr",
-				"<CMD>Octo review resume<CR>",
-				desc = "Resume GitHub PR review",
-			},
-			{
-				"<leader>oru",
-				"<CMD>Octo review submit<CR>",
-				desc = "Submit GitHub PR review",
-			},
-			{
-				"<leader>orc",
-				"<CMD>Octo review comments<CR>",
-				desc = "List pending GitHub review comments",
-			},
-			{
-				"<leader>orC",
-				"<CMD>Octo review commit<CR>",
-				desc = "Pick GitHub PR review commit",
-			},
-			{
-				"<leader>ord",
-				"<CMD>Octo review discard<CR>",
-				desc = "Discard GitHub PR review",
-			},
-			{
-				"<leader>orx",
-				"<CMD>Octo review close<CR>",
-				desc = "Close GitHub PR review",
-			},
-		},
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"ibhagwan/fzf-lua",
-			"nvim-tree/nvim-web-devicons",
-		},
-	},
-	{
 		"lewis6991/gitsigns.nvim",
 		event = { "BufReadPre", "BufNewFile" },
 		opts = {
@@ -1889,6 +1770,56 @@ require("lazy").setup({
 					gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
 				end, { buffer = bufnr, desc = "Git: reset selected hunk" })
 			end,
+		},
+	},
+	{
+		"folke/snacks.nvim",
+		opts = {
+			gh = {
+				-- your gh configuration comes here
+				-- or leave it empty to use the default settings
+				-- refer to the configuration section below
+			},
+			picker = {
+				sources = {
+					gh_issue = {
+						-- your gh_issue picker configuration comes here
+						-- or leave it empty to use the default settings
+					},
+					gh_pr = {
+						-- your gh_pr picker configuration comes here
+						-- or leave it empty to use the default settings
+					}
+				}
+			},
+		},
+		keys = {
+			{ "<leader>gi",  function() Snacks.picker.gh_issue() end,                     desc = "GitHub Issues (open)" },
+			{ "<leader>gI",  function() Snacks.picker.gh_issue({ state = "all" }) end,    desc = "GitHub Issues (all)" },
+			{ "<leader>gia", function() Snacks.picker.gh_issue({ assignee = "@me" }) end, desc = "GitHub Issues (assigned to me)" },
+			{ "<leader>gin", function() Snacks.picker.gh_issue({ mention = "@me" }) end,  desc = "GitHub Issues (mentioning me)" },
+			{
+				"<leader>gil",
+				function()
+					vim.ui.input({ prompt = "Label: " }, function(label)
+						if label and label ~= "" then Snacks.picker.gh_issue({ label = label }) end
+					end)
+				end,
+				desc = "GitHub Issues (by label)"
+			},
+			{ "<leader>gp",  function() Snacks.picker.gh_pr() end,                     desc = "GitHub Pull Requests (open)" },
+			{ "<leader>gP",  function() Snacks.picker.gh_pr({ state = "all" }) end,    desc = "GitHub Pull Requests (all)" },
+			{ "<leader>gpa", function() Snacks.picker.gh_pr({ assignee = "@me" }) end, desc = "GitHub PRs (assigned to me)" },
+			{ "<leader>gpn", function() Snacks.picker.gh_pr({ involves = "@me" }) end, desc = "GitHub PRs (involving me)" },
+			{
+				"<leader>gpl",
+				function()
+					vim.ui.input({ prompt = "Label: " }, function(label)
+						if label and label ~= "" then Snacks.picker.gh_pr({ label = label }) end
+					end)
+				end,
+				desc = "GitHub PRs (by label)"
+			},
 		},
 	}
 })
