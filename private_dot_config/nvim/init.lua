@@ -72,11 +72,11 @@ vim.opt.wildmode = 'list:longest'
 -- when opening a file with a command (like :e),
 -- don't suggest files like there:
 vim.opt.wildignore = '.git,.hg,.svn,*~,*.png,*.jpg,*.gif,*.min.js,*.swp,*.o,vendor,dist,_site'
--- tabs: go big or go home
+-- use 2 spaces for indent
 vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
 vim.opt.tabstop = 2
-vim.opt.expandtab = false
+vim.opt.expandtab = true
 -- case-insensitive search/replace
 vim.opt.ignorecase = true
 -- unless uppercase in search term
@@ -650,6 +650,14 @@ require("lazy").setup({
 					ocaml           = { "ocamlformat" },
 					haskell         = { "fourmolu" },
 					ruby            = { "rubocop" },
+					capnp           = { "capnpfmt" },
+				},
+				formatters = {
+					capnpfmt = {
+						command = "capnpfmt",
+						args = { "--width", "100" },
+						stdin = true,
+					},
 				},
 				format_on_save = function(bufnr)
 					local bufname = vim.api.nvim_buf_get_name(bufnr)
@@ -737,6 +745,30 @@ require("lazy").setup({
 			-- Lua
 			if vim.fn.executable('lua-language-server') == 1 then
 				vim.lsp.enable('lua_ls')
+			end
+
+			vim.filetype.add({
+				extension = {
+					capnp = 'capnp',
+				},
+			})
+
+			if vim.fn.executable('capnprotols') == 1 then
+				vim.lsp.config('capnprotols', {
+					cmd = { 'capnprotols' },
+					filetypes = { 'capnp' },
+					root_markers = { '.git' },
+					init_options = {
+						compilerPath = 'capnp',
+						importPaths = {},
+						format = {
+							enabled = true,
+							maxWidth = 100,
+							warnLongLines = true,
+						},
+					},
+				})
+				vim.lsp.enable('capnprotols')
 			end
 
 			-- Global mappings.
