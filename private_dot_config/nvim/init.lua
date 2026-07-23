@@ -732,6 +732,13 @@ require("lazy").setup({
 
       -- texlab for LaTeX
       if vim.fn.executable('texlab') == 1 then
+        vim.lsp.config('texlab', {
+          settings = {
+            texlab = {
+              build = { onSave = true },
+            },
+          },
+        })
         vim.lsp.enable('texlab')
       end
 
