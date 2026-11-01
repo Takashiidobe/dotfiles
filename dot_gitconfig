@@ -4,8 +4,9 @@
 	email = idobetakashi@gmail.com
 	name = Takashiidobe
 [credential]
-	helper = /home/takashi/.local/bin/git-credential-manager
   credentialStore = plaintext
+	helper = cache --timeout 21600
+	helper = oauth
 [credential "https://dev.azure.com"]
 	useHttpPath = true
 [diff]
@@ -32,3 +33,9 @@
 	autoSetupRemote = true
 [commit]
 	template = ~/.gitmessage
+[credential "https://github.com"]
+	helper = 
+	helper = !/home/takashi/.local/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/home/takashi/.local/bin/gh auth git-credential

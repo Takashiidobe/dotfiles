@@ -1,3 +1,3 @@
 [page]
-'n' = 'cmd.pager.nextBuffer'
-'b' = 'cmd.pager.prevBuffer'
+'g n' = 'cmd.pager.nextBuffer'
+'g b' = 'cmd.pager.prevBuffer'

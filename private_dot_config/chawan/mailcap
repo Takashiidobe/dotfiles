@@ -1,0 +1,5 @@
+text/plain; text/x-source; x-type; x-match=\.(c|h|cc|hh|cpp|hpp|cxx|hxx|inl|ipp|rs|py|js|mjs|cjs|ts|tsx|jsx|go|sh|bash|zsh|fish|rb|java|cs|lua|toml|yaml|yml)(\?.*)?$
+text/x-source; bat --no-config --color=always --paging=never --style=plain --file-name %u -; x-ansioutput
+text/x-c; bat --no-config --color=always --paging=never --style=plain --language=c -; x-ansioutput
+text/x-c++; bat --no-config --color=always --paging=never --style=plain --language=cpp -; x-ansioutput
+text/javascript; bat --no-config --color=always --paging=never --style=plain --language=js -; x-ansioutput
