@@ -3,3 +3,6 @@ text/x-source; bat --no-config --color=always --paging=never --style=plain --fil
 text/x-c; bat --no-config --color=always --paging=never --style=plain --language=c -; x-ansioutput
 text/x-c++; bat --no-config --color=always --paging=never --style=plain --language=cpp -; x-ansioutput
 text/javascript; bat --no-config --color=always --paging=never --style=plain --language=js -; x-ansioutput
+video/*; mpv %u
+application/vnd.apple.mpegurl; /home/takashi/.local/bin/cha-mpv %u
+application/x-mpegurl; /home/takashi/.local/bin/cha-mpv %u

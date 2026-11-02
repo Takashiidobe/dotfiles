@@ -1,3 +1,10 @@
 [page]
 'g n' = 'cmd.pager.nextBuffer'
 'g b' = 'cmd.pager.prevBuffer'
+
+[buffer]
+images = true
+
+[siteconf.redlib]
+host = '^reddit\.takashiidobe\.com$'
+cookie = "save"
