@@ -785,6 +785,15 @@ require("lazy").setup({
       -- 	vim.lsp.enable('m68k')
       -- end
 
+      if vim.fn.executable('asm-lsp') == 1 then
+        vim.lsp.config('asm_lsp', {
+          cmd = { 'asm-lsp' },
+          filetypes = { 's', 'S', 'asm', 'rgbds' },
+          root_markers = { '.asm-lsp.toml', '.git' },
+        })
+        vim.lsp.enable('asm_lsp')
+      end
+
       -- texlab for LaTeX
       if vim.fn.executable('texlab') == 1 then
         vim.lsp.config('texlab', {
@@ -1953,6 +1962,12 @@ require("lazy").setup({
       -- capnp and yaml were previously pulled in by auto_install (manual start / yaml.nvim)
       require('nvim-treesitter').install({ 'rust', 'lua', 'toml', 'lean', 'capnp', 'yaml', 'markdown', 'markdown_inline' })
     end,
+  },
+  {
+    'HiPhish/rainbow-delimiters.nvim',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+    },
   },
   -- testing
   {
