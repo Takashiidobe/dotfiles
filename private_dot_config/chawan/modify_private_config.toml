@@ -1,0 +1,43 @@
+{{- /* chezmoi:modify-template */ -}}
+[page]
+'g w' = '() => cmd.wrp.open(buffer.url.href)'
+'g W' = '() => { if (buffer.hoverLink) cmd.wrp.open(new URL(buffer.hoverLink, buffer.url).href); else pager.alert("No link under cursor"); }'
+'g n' = 'cmd.pager.nextBuffer'
+'g b' = 'cmd.pager.prevBuffer'
+
+[buffer]
+images = true
+
+[siteconf.redlib]
+host = '^reddit\.takashiidobe\.com$'
+cookie = "save"
+
+[cmd.wrp]
+open = '''(target) => {
+    const url = new URL(target);
+    if (url.hostname === "wrp.takashiidobe.com") {
+        pager.alert("Already using WRP");
+        return;
+    }
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+        pager.alert("WRP needs an HTTP or HTTPS URL");
+        return;
+    }
+    pager.gotoURL("https://wrp.takashiidobe.com/?url=" + encodeURIComponent(url.href));
+}'''
+
+[omnirule.wrp]
+match = '^wrp:'
+substitute-url = '(x) => "https://wrp.takashiidobe.com/?url=" + encodeURIComponent(x.slice(4).trim())'
+
+[siteconf.wrp]
+url = '^https://wrp\.takashiidobe\.com/'
+cookie = false
+scripting = false
+{{- if $authorization := env "CHAWAN_WRP_AUTHORIZATION" }}
+default-headers = { Authorization = {{ $authorization | toJson }} }
+{{- else if $section := regexFind "(?m)^\\[siteconf\\.wrp\\]\\n[^\\[]*" .chezmoi.stdin }}
+{{- with regexFind "(?m)^default-headers = [^\\n]+" $section }}
+{{ . }}
+{{- end }}
+{{- end }}

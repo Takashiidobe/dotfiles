@@ -4,5 +4,5 @@ text/x-c; bat --no-config --color=always --paging=never --style=plain --language
 text/x-c++; bat --no-config --color=always --paging=never --style=plain --language=cpp -; x-ansioutput
 text/javascript; bat --no-config --color=always --paging=never --style=plain --language=js -; x-ansioutput
 video/*; mpv %u
-application/vnd.apple.mpegurl; /home/takashi/.local/bin/cha-mpv %u
-application/x-mpegurl; /home/takashi/.local/bin/cha-mpv %u
+application/vnd.apple.mpegurl; "$HOME/.local/bin/cha-mpv" %u
+application/x-mpegurl; "$HOME/.local/bin/cha-mpv" %u

@@ -1,0 +1,3 @@
+https/get; mpv -- %u; nc-match=^https?://(((www|m|music)\.)?youtube\.com/(watch\?.*|shorts/[^/?#]+.*|live/[^/?#]+.*|embed/[^/?#]+.*)|(www\.)?youtu\.be/[^/?#]+.*)$
+http/get; mpv -- %u; nc-match=^https?://(((www|m|music)\.)?youtube\.com/(watch\?.*|shorts/[^/?#]+.*|live/[^/?#]+.*|embed/[^/?#]+.*)|(www\.)?youtu\.be/[^/?#]+.*)$
+https/get; "$HOME/.local/bin/cha-mpv" %u; nc-match=^https://invidious\.takashiidobe\.com/watch\?.*$

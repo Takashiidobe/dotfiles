@@ -16,6 +16,9 @@ fish_add_path "$HOME/x-tools/m68k-unknown-linux-uclibc/bin/"
 fish_add_path "$HOME/.luarocks/bin"
 fish_add_path "$FLYCTL_INSTALL/bin"
 fish_add_path ~/.local/share/gem/ruby/3.4.0/bin
+if set -q HOMEBREW_PREFIX
+    fish_add_path --append --path "$HOMEBREW_PREFIX/opt/rustup/bin" "$HOMEBREW_PREFIX/opt/llvm/bin"
+end
 
 alias lynx "lynx -vikeys"
 alias revdiff "revdiff --vim-motion"
@@ -71,7 +74,9 @@ if status is-interactive
     keychain --eval --quiet --noask | source
 end
 
-/usr/bin/mise activate fish | source
+if not functions -q mise; and command -q mise
+    command mise activate fish | source
+end
 
 test -r '/home/takashi/.opam/opam-init/init.fish' && source '/home/takashi/.opam/opam-init/init.fish' > /dev/null 2> /dev/null; or true
 

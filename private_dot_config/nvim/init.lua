@@ -579,7 +579,7 @@ require("lazy").setup({
         local opts = {}
         opts.cmd = 'fd --color=never --hidden --type f --type l --exclude .git'
         local base = vim.fn.fnamemodify(vim.fn.expand('%'), ':h:.:S')
-        if base ~= '.' then
+        if base ~= '.' and vim.fn.executable('proximity-sort') == 1 then
           -- if there is no current file,
           -- proximity-sort can't do its thing
           opts.cmd = opts.cmd .. (" | proximity-sort %s"):format(vim.fn.shellescape(vim.fn.expand('%')))

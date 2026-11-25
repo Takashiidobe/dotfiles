@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+#
+# delete-claude-commits
+#
+# Rewrites Git history for commits containing Claude/Anthropic attribution.
+# For each matching commit, only the first line of the commit message is kept.
+#
+# Requires: git-filter-repo
+# Install:  pipx install git-filter-repo
+#           or: brew install git-filter-repo
+#
+set -euo pipefail
+
+git rev-parse --git-dir >/dev/null 2>&1 || {
+    echo "Error: run this script inside a Git repository." >&2
+    exit 1
+}
+
+command -v git-filter-repo >/dev/null 2>&1 || {
+    echo "Error: git-filter-repo is not installed." >&2
+    exit 1
+}
+
+callback=$(cat <<'PYTHON'
+import re
+
+message = commit.message
+
+# has_claude_coauthor = re.search(
+#     br"(?im)^[ \t]*co-authored-by:[^\r\n]*(?:claude|anthropic)[^\r\n]*$",
+#     message,
+# )
+# 
+# has_claude_generated_notice = re.search(
+#     br"(?im)^[^\r\n]*(?:generated|written|created)[^\r\n]*"
+#     br"(?:claude|anthropic)[^\r\n]*$",
+#     message,
+# )
+
+# if has_claude_coauthor or has_claude_generated_notice:
+lines = message.splitlines()
+
+if lines:
+    # Retain the commit subject and remove the complete message body.
+    commit.message = lines[0].rstrip() + b"\n"
+else:
+    commit.message = b""
+PYTHON
+)
+
+extra_args=()
+
+if [[ "${1:-}" == "--force" ]]; then
+    extra_args+=(--force)
+elif [[ $# -gt 0 ]]; then
+    echo "Usage: $0 [--force]" >&2
+    exit 1
+fi
+
+git filter-repo \
+    "${extra_args[@]}" \
+    --commit-callback "$callback"
+
+echo "Finished rewriting Claude/Anthropic-attributed commit messages."
+echo "Review the history before force-pushing."
