@@ -40,7 +40,6 @@ set -gx MANPAGER bat
 set -gx MONOREPO $HOME/monorepo
 set -gx MOZ_ENABLE_WAYLAND 1
 set -gx MOZ_DISABLE_RDD_SANDBOX 1
-set -gx CARGO_INCREMENTAL 0
 set -gx BROWSER firefox
 set -gx WASMTIME_HOME "$HOME/.wasmtime"
 set -gx MISE_PIN 1
