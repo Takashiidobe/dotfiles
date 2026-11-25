@@ -1,0 +1,70 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "includeCoAuthoredBy": false,
+  "model": "opus",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/strip-ai-comments.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/strip-claude-commit-metadata.py"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [],
+    "Stop": []
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "refreshInterval": 60
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": false,
+    "typescript-lsp@claude-plugins-official": false,
+    "revdiff-planning@revdiff": false,
+    "revdiff@revdiff": true,
+    "gopls-lsp@claude-plugins-official": false
+  },
+  "extraKnownMarketplaces": {},
+  "effortLevel": "medium",
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "autoCompactWindow": 350000,
+  "promptSuggestionEnabled": false,
+  "awaySummaryEnabled": false,
+  "tui": "fullscreen",
+  "autoMemoryEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": false,
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "allow": ["$defaults"],
+    "soft_deny": ["$defaults"],
+    "hard_deny": ["$defaults"],
+    "environment": ["$defaults"]
+  },
+  "defaultMode": "bypassPermissions"
+}

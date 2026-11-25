@@ -725,6 +725,15 @@ require("lazy").setup({
               command = "clippy",
               allTargets = true,
             },
+            files = {
+              exclude = {
+                "target",
+                "crates/slate/target",
+                "crates/slate-parser/target",
+                "www/target",
+                "www-parser/target",
+              },
+            },
             imports = {
               group = {
                 enable = false,
